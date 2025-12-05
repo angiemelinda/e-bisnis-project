@@ -10,7 +10,12 @@ class AuthController extends Controller
 {
     public function showRegister()
     {
-        return view('register');
+        // Jika sudah login, redirect ke dashboard sesuai role
+        if (Auth::check()) {
+            return $this->redirectByRole(Auth::user()->role);
+        }
+        
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -19,7 +24,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20'],
-            'role' => ['required', 'in:supplier,dropshipper,super_admin,admin_produk,admin_pengguna,admin_transaksi'],
+            'role' => ['required', 'in:supplier,dropshipper,super_admin,admin_produk,admin_pengguna,admin_transaksi,admin_laporan'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -38,7 +43,12 @@ class AuthController extends Controller
 
     public function showLogin()
     {
-        return view('login');
+        // Jika sudah login, redirect ke dashboard sesuai role
+        if (Auth::check()) {
+            return $this->redirectByRole(Auth::user()->role);
+        }
+        
+        return view('auth.login');
     }
 
     public function login(Request $request)
@@ -68,7 +78,13 @@ class AuthController extends Controller
     private function redirectByRole(string $role)
     {
         return match ($role) {
-            'super_admin' => redirect()->route('super_admin'),
+            'super_admin' => redirect()->route('superadmin.dashboard'),
+            'admin_produk' => redirect()->route('adminproduk.dashboard'),
+            'admin_pengguna' => redirect()->route('adminpengguna.dashboard'),
+            'admin_transaksi' => redirect()->route('admintransaksi.dashboard'),
+            'admin_laporan' => redirect()->route('adminlaporan.dashboard'),
+            'supplier' => redirect()->route('supplier.dashboard'),
+            'dropshipper' => redirect()->route('dropshipper.dashboard'),
             default => redirect()->route('home'),
         };
     }

@@ -20,7 +20,16 @@ class ProductController extends Controller
             'inactive' => Product::where('status', 'inactive')->count(),
         ];
 
-        return view('admin.products', compact('products', 'categories', 'summary'));
+        // Determine view based on route
+        if (request()->routeIs('superadmin.products')) {
+            $view = 'superadmin.products';
+        } elseif (request()->routeIs('adminproduk.products')) {
+            $view = 'adminproduk.products';
+        } else {
+            $view = 'admin.products'; // fallback
+        }
+
+        return view($view, compact('products', 'categories', 'summary'));
     }
 
     public function store(Request $request)
@@ -38,6 +47,13 @@ class ProductController extends Controller
 
         Product::create($data);
 
-        return redirect()->route('admin.products')->with('success', 'Produk berhasil ditambahkan.');
+        // Determine redirect route based on current route
+        if (request()->routeIs('superadmin.products.store')) {
+            return redirect()->route('superadmin.products')->with('success', 'Produk berhasil ditambahkan.');
+        } elseif (request()->routeIs('adminproduk.products.store')) {
+            return redirect()->route('adminproduk.products')->with('success', 'Produk berhasil ditambahkan.');
+        } else {
+            return redirect()->route('admin.products')->with('success', 'Produk berhasil ditambahkan.');
+        }
     }
 }

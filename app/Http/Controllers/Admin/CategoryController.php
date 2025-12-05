@@ -17,7 +17,16 @@ class CategoryController extends Controller
             'active' => Category::where('active', true)->count(),
         ];
 
-        return view('admin.categories', compact('categories', 'summary'));
+        // Determine view based on route
+        if (request()->routeIs('superadmin.categories')) {
+            $view = 'superadmin.categories';
+        } elseif (request()->routeIs('adminproduk.categories')) {
+            $view = 'adminproduk.categories';
+        } else {
+            $view = 'admin.categories'; // fallback
+        }
+
+        return view($view, compact('categories', 'summary'));
     }
 
     public function store(Request $request)
@@ -41,6 +50,13 @@ class CategoryController extends Controller
             'active' => $data['active'] ?? true,
         ]);
 
-        return redirect()->route('admin.categories')->with('success', 'Kategori berhasil ditambahkan.');
+        // Determine redirect route based on current route
+        if (request()->routeIs('superadmin.categories.store')) {
+            return redirect()->route('superadmin.categories')->with('success', 'Kategori berhasil ditambahkan.');
+        } elseif (request()->routeIs('adminproduk.categories.store')) {
+            return redirect()->route('adminproduk.categories')->with('success', 'Kategori berhasil ditambahkan.');
+        } else {
+            return redirect()->route('admin.categories')->with('success', 'Kategori berhasil ditambahkan.');
+        }
     }
 }
