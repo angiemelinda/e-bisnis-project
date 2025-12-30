@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone')->nullable()->after('email');
-            $table->string('role')->default('dropshipper')->after('phone');
+            $table->string('phone', 20)->after('email');
+            $table->string('role')->after('phone');
         });
     }
 

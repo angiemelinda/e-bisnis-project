@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -20,7 +23,7 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20'],
@@ -28,13 +31,36 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'role' => $validated['role'],
-            'password' => $validated['password'],
+        if ($validator->fails()) {
+            Log::warning('Registration validation failed', [
+                'errors' => $validator->errors()->toArray(),
+                'input' => $request->except('password', 'password_confirmation'),
+            ]);
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
+
+        // Log the registration attempt (no password)
+        Log::info('Registration attempt', [
+            'name' => $validated['name'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'role' => $validated['role'] ?? null,
         ]);
+
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'role' => $validated['role'],
+                'password' => Hash::make($validated['password']),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Registration failed', ['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Terjadi kesalahan pada server'])->withInput();
+        }
 
         Auth::login($user);
 
