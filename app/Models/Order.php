@@ -36,4 +36,12 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    /**
+     * Transactions history for this order
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
 }

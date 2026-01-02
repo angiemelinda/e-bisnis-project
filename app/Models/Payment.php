@@ -18,4 +18,12 @@ class Payment extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    /**
+     * Transaction history (one payment can generate multiple transactions)
+     */
+    public function transactions()
+    {
+        return $this->hasMany(\App\Models\Transaction::class);
+    }
 }

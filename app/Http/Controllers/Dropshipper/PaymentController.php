@@ -30,7 +30,7 @@ class PaymentController extends Controller
             ->latest()
             ->get();
 
-        return view('dropshipper.payments.index', compact('orders'));
+        return view('dropshipper.payments', compact('orders'));
     }
 
     // 2️⃣ Halaman bayar (Snap)
@@ -60,18 +60,5 @@ class PaymentController extends Controller
         return response($snapToken);
     }
 
-    // 3️⃣ Callback Midtrans (update database)
-    public function callback(Request $request)
-    {
-        $payment = Payment::where('order_code', $request->order_id)->first();
 
-        if (!$payment) return response()->json(['message' => 'Payment not found'], 404);
-
-        if ($request->transaction_status == 'settlement') {
-            $payment->update(['status' => 'lunas']);
-            $payment->order->update(['status' => 'diproses']);
-        }
-
-        return response()->json(['message' => 'OK']);
-    }
 }

@@ -3,12 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ShippingController;
 // DROPSHIPPER
 use App\Http\Controllers\Dropshipper\DashboardController;
 use App\Http\Controllers\Dropshipper\ProductController as DropshipperProductController;
 use App\Http\Controllers\Dropshipper\OrderController;
 use App\Http\Controllers\Dropshipper\PaymentController;
 use App\Http\Controllers\Dropshipper\TransactionController;
+use App\Http\Controllers\MidtransCallbackController;
 
 // ADMIN
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -222,9 +224,24 @@ Route::middleware(['auth', 'role:dropshipper'])->prefix('dropshipper')->name('dr
     Route::post('/pay/{order}', [PaymentController::class, 'pay']) ->name('payments.pay');
     // ===== TRANSACTIONS (SPRINT 1 DUMMY) =====
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
+    
+    // API: transactions (DB-backed)
+    Route::get('/api/transactions', [TransactionController::class, 'indexApi'])->name('api.transactions');
+    Route::get('/api/transactions/{id}', [TransactionController::class, 'showApi'])->name('api.transactions.show');
     Route::get('/midtrans-test', function () {
         return config('midtrans.server_key');
     });
+
+    // ===== SHIPPING & REPORTS API (backend JSON endpoints) =====
+    // Track by resi (returns JSON, can proxy to external provider if configured)
+    Route::get('/api/tracking/{resi}', [\App\Http\Controllers\Dropshipper\ShippingController::class, 'track'])
+        ->name('api.tracking');
+
+    // Reports: summary and list (paginated) with estimated margin
+    Route::get('/api/reports/summary', [\App\Http\Controllers\Dropshipper\ReportController::class, 'summary'])
+        ->name('api.reports.summary');
+    Route::get('/api/reports/orders', [\App\Http\Controllers\Dropshipper\ReportController::class, 'orders'])
+        ->name('api.reports.orders');
 
 });
 
@@ -266,3 +283,26 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 Route::post('/midtrans/callback', 
     [MidtransCallbackController::class, 'handle']
 );
+
+/*
+|--------------------------------------------------------------------------
+| SHIPPING ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+
+    // ADMIN & SUPPLIER
+    Route::middleware('role:admin,supplier')->group(function () {
+        Route::post('/orders/{order}/shipping', 
+            [ShippingController::class, 'update']
+        )->name('shipping.update');
+    });
+
+    // DROPSHIPPER
+    Route::middleware('role:dropshipper')->group(function () {
+        Route::get('/shipping/track/{resi}', 
+            [ShippingController::class, 'track']
+        )->name('shipping.track');
+    });
+
+});
