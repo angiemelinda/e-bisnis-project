@@ -8,11 +8,10 @@ class Payment extends Model
 {
     protected $fillable = [
         'order_id',
-        'amount',
+        'midtrans_order_id',
         'status',
-        'payment_method',
-        'payment_reference',
     ];
+
 
     public function order()
     {

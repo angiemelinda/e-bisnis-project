@@ -67,10 +67,14 @@ class OrderController extends Controller
     // =====================
     public function cart()
     {
-        $cart = session()->get('cart', []);
-        $total = collect($cart)->sum('subtotal');
+        $user = auth()->user();
 
-        return view('dropshipper.cart', compact('cart', 'total'));
+        $cart = Order::where('user_id', $user->id)
+            ->where('status', 'belum_dibayar')
+            ->with(['items.product'])
+            ->first();
+
+        return view('dropshipper.cart', compact('cart'));
     }
 
     // =====================
@@ -78,42 +82,36 @@ class OrderController extends Controller
     // =====================
     public function checkout()
     {
-        $cart = session()->get('cart');
+        $cart = Cart::with('items.product')
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
 
-        if (!$cart || count($cart) === 0) {
-            return back()->with('error', 'Cart kosong');
-        }
+        DB::transaction(function () use ($cart) {
 
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'order_code' => 'GH-' . strtoupper(Str::random(8)),
-            'total' => collect($cart)->sum('subtotal'),
-            'margin' => 0,
-            'status' => 'pending',
-        ]);
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total,
-            'status' => 'menunggu_pembayaran',
-        ]);
-
-
-        foreach ($cart as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['qty'],
-                'price' => $item['price'],
-                'subtotal' => $item['subtotal'],
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'order_code' => 'GH-' . now()->format('YmdHis'),
+                'total' => $cart->items->sum(fn($i) => $i->price * $i->qty),
+                'margin' => 0,
             ]);
-        }
 
-        session()->forget('cart');
+            foreach ($cart->items as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->qty,
+                    'price' => $item->price,
+                    'subtotal' => $item->price * $item->qty,
+                ]);
+            }
 
-        return redirect()->route('dropshipper.orders')
-            ->with('success', 'Order berhasil dibuat');
+            // kosongkan cart
+            $cart->items()->delete();
+        });
+
+        return redirect()->route('dropshipper.payments');
     }
+
 
     // =====================
     // DETAIL ORDER

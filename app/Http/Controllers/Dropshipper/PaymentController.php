@@ -38,6 +38,14 @@ class PaymentController extends Controller
     {
         abort_if($order->user_id !== auth()->id(), 403);
 
+        $payment = Payment::firstOrCreate(
+            ['order_id' => $order->id],
+            [
+                'midtrans_order_id' => $order->order_code,
+                'status' => 'menunggu_pembayaran',
+            ]
+        );
+
         if ($order->snap_token) {
             return response($order->snap_token);
         }

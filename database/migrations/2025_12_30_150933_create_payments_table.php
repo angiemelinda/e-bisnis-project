@@ -13,26 +13,16 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
         $table->id();
-
-        $table->foreignId('order_id')
-            ->constrained()
-            ->cascadeOnDelete();
-
-        // MIDTRANS
+        $table->foreignId('order_id')->constrained()->cascadeOnDelete();
         $table->string('midtrans_order_id')->unique();
-        $table->string('transaction_id')->nullable();
-        $table->string('payment_type')->nullable();
-
         $table->enum('status', [
             'menunggu_pembayaran',
             'lunas',
             'gagal'
         ])->default('menunggu_pembayaran');
-
-        $table->json('raw_response')->nullable(); // simpan callback midtrans
-
         $table->timestamps();
     });
+
 
     }
 

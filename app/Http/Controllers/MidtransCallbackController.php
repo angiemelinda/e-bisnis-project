@@ -21,6 +21,15 @@ class MidtransCallbackController extends Controller
             $serverKey
         );
 
+        if ($payment) {
+            $payment->update([
+                'status' => in_array($transactionStatus, ['capture', 'settlement'])
+                    ? 'lunas'
+                    : 'menunggu_pembayaran',
+            ]);
+        }   
+
+
         if ($signature !== $notification->signature_key) {
             return response()->json(['message' => 'Invalid signature'], 403);
         }

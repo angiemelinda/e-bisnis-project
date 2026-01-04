@@ -19,7 +19,9 @@ class ReportController extends Controller
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $baseQuery = Order::where('user_id', auth()->id());
+       $baseQuery = Order::where('user_id', auth()->id())
+          ->where('payment_status', 'sudah_dibayar');
+
 
         if ($from) $baseQuery->whereDate('created_at', '>=', $from);
         if ($to) $baseQuery->whereDate('created_at', '<=', $to);
@@ -51,7 +53,11 @@ class ReportController extends Controller
     public function orders(Request $request)
     {
         $perPage = $request->integer('per_page', 15);
-        $query = Order::with('items.product')->latest();
+        $query = Order::with('items.product')
+            ->where('user_id', auth()->id())
+            ->where('payment_status', 'sudah_dibayar')
+            ->latest();
+
 
         if ($from = $request->query('from')) $query->whereDate('created_at', '>=', $from);
         if ($to = $request->query('to')) $query->whereDate('created_at', '<=', $to);

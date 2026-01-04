@@ -257,8 +257,8 @@ Route::middleware(['auth', 'role:dropshipper'])->prefix('dropshipper')->name('dr
     Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 
     // ===== PAYMENT (SPRINT 1 DUMMY) =====
-    Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
-    Route::post('/pay/{order}', [PaymentController::class, 'pay']) ->name('payments.pay');
+    Route::post('/payments/{order}/pay', [PaymentController::class, 'pay'])->name('payments.pay');
+
     // ===== TRANSACTIONS (SPRINT 1 DUMMY) =====
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
     
@@ -321,25 +321,3 @@ Route::post('/midtrans/callback',
     [MidtransCallbackController::class, 'handle']
 );
 
-/*
-|--------------------------------------------------------------------------
-| SHIPPING ROUTES
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-
-    // ADMIN & SUPPLIER
-    Route::middleware('role:admin,supplier')->group(function () {
-        Route::post('/orders/{order}/shipping', 
-            [ShippingController::class, 'update']
-        )->name('shipping.update');
-    });
-
-    // DROPSHIPPER
-    Route::middleware('role:dropshipper')->group(function () {
-        Route::get('/shipping/track/{resi}', 
-            [ShippingController::class, 'track']
-        )->name('shipping.track');
-    });
-
-});
