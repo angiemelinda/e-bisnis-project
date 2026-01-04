@@ -16,6 +16,7 @@ use App\Http\Controllers\MidtransCallbackController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Models\User;
+use App\Http\Controllers\Supplier\ProdukController;
 
 // ============================================
 // PUBLIC ROUTES
@@ -172,27 +173,63 @@ Route::middleware(['auth', 'role:admin_laporan'])->prefix('adminlaporan')->name(
 // ============================================
 
 Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier.')->group(function () {
+
     Route::get('/dashboard', function () {
-        return view('supplier.dashboard');
+
+        $totalProduk   = 12;
+        $totalOrders   = 25;
+        $totalStok     = 80;
+        $outOfStock    = 3;
+
+        $pesananTerbaru = [
+            (object)['id'=>101, 'status'=>'belum diproses'],
+            (object)['id'=>102, 'status'=>'sedang dikirim'],
+            (object)['id'=>103, 'status'=>'selesai'],
+        ];
+
+        $produkTeratas = [
+            (object)['nama'=>'Kaos Polos', 'stok'=>3],
+            (object)['nama'=>'Totebag Custom', 'stok'=>7],
+        ];
+
+        $notifikasi = [
+            (object)['message'=>'Pesanan baru masuk #104'],
+            (object)['message'=>'Produk Kaos Polos hampir habis'],
+            (object)['message'=>'Promo baru tersedia'],
+        ];
+
+        return view('supplier.dashboard2', compact(
+            'totalProduk',
+            'totalOrders',
+            'totalStok',
+            'outOfStock',
+            'pesananTerbaru',
+            'produkTeratas',
+            'notifikasi'
+        ));
     })->name('dashboard');
-    
-    Route::get('/my-products', function () {
-        return view('supplier.my-products');
-    })->name('my-products');
-    
-    Route::post('/products', function () {
-        // Handle product creation
-        return redirect()->route('supplier.my-products')->with('success', 'Produk berhasil ditambahkan');
-    })->name('products.store');
-    
-    Route::get('/orders', function () {
-        return view('supplier.orders');
-    })->name('orders');
-    
-    Route::get('/earnings', function () {
-        return view('supplier.earnings');
-    })->name('earnings');
+
+
+    // PRODUK
+    Route::prefix('produk')->name('produk.')->group(function () {
+        Route::get('/', fn () => view('supplier.produk.index'))->name('index');
+        Route::get('/create', fn () => view('supplier.produk.create'))->name('create');
+        Route::get('/edit/{id}', fn ($id) => view('supplier.produk.edit', compact('id')))->name('edit');
+    });
+
+    // PESANAN
+    Route::prefix('pesanan')->name('pesanan.')->group(function () {
+        Route::get('/', fn () => view('supplier.pesanan.index'))->name('index');
+        Route::get('/{id}', fn ($id) => view('supplier.pesanan.show', compact('id')))->name('show');
+    });
+
+    // PROFIL
+    Route::get('/profile', fn () => view('supplier.profile'))->name('profile');
+
+    //PENGATURAN
+    Route::get('/pengaturan', fn () => view('supplier.pengaturan'))->name('pengaturan');
 });
+
 
 // ============================================
 // DROPSHIPPER ROUTES
