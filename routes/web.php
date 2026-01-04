@@ -3,8 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LandingController;
-use App\Http\Controllers\DropshipperController;
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\ShippingController;
+// DROPSHIPPER
+use App\Http\Controllers\Dropshipper\DashboardController;
+use App\Http\Controllers\Dropshipper\ProductController as DropshipperProductController;
+use App\Http\Controllers\Dropshipper\OrderController;
+use App\Http\Controllers\Dropshipper\PaymentController;
+use App\Http\Controllers\Dropshipper\TransactionController;
+use App\Http\Controllers\MidtransCallbackController;
+
+// ADMIN
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Models\User;
 use App\Http\Controllers\Supplier\ProdukController;
@@ -69,10 +78,10 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('sup
     Route::get('/dropshippers', function () {
         return view('superadmin.dropshippers');
     })->name('dropshippers');
-    
-    Route::get('/products', [ProductController::class, 'index'])->name('products');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    
+
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     
@@ -94,8 +103,8 @@ Route::middleware(['auth', 'role:admin_produk'])->prefix('adminproduk')->name('a
         return view('adminproduk.dashboard');
     })->name('dashboard');
     
-    Route::get('/products', [ProductController::class, 'index'])->name('products');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products', [AdminProductController::class, 'index'])->name('products');
+    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
     
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -227,21 +236,50 @@ Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier
 // ============================================
 
 Route::middleware(['auth', 'role:dropshipper'])->prefix('dropshipper')->name('dropshipper.')->group(function () {
-    Route::get('/dashboard', [DropshipperController::class, 'dashboard'])->name('dashboard');
-    Route::get('/catalog', [DropshipperController::class, 'catalog'])->name('catalog');
-    Route::get('/product/{product}', [DropshipperController::class, 'productShow'])->name('product.show');
-    Route::get('/order-items', [DropshipperController::class, 'orderItems'])->name('order-items');
-    Route::post('/order-items', [DropshipperController::class, 'orderItemsStore'])->name('order-items.store');
-    Route::get('/orders', [DropshipperController::class, 'orders'])->name('orders');
-    Route::get('/order/{id}', [DropshipperController::class, 'orderShow'])->name('order.show');
-    Route::get('/order-history', [DropshipperController::class, 'orderHistory'])->name('order-history');
-    Route::get('/history', [DropshipperController::class, 'orderHistory'])->name('history');
-    Route::get('/cart', [DropshipperController::class, 'cart'])->name('cart');
-    Route::get('/payments', [DropshipperController::class, 'payments'])->name('payments');
-    Route::get('/tracking', [DropshipperController::class, 'tracking'])->name('tracking');
-    Route::get('/transactions', [DropshipperController::class, 'transactions'])->name('transactions');
-    Route::get('/reports', [DropshipperController::class, 'reports'])->name('reports');
-    Route::get('/profile', [DropshipperController::class, 'profile'])->name('profile');
+    // ===== DASHBOARD =====
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
+    Route::get('/tracking', [DashboardController::class, 'tracking'])->name('tracking');
+    Route::get('/reports', [DashboardController::class, 'reports'])->name('reports');
+    // ===== PRODUCT / CATALOG =====
+    Route::get('/catalog', [DropshipperProductController::class, 'index'])->name('catalog');
+    Route::get('/product/{id}', [DropshipperProductController::class, 'show'])->name('product.show');
+    
+     // ===== ORDER =====
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders');
+    Route::get('/order/{id}', [OrderController::class, 'orderShow'])->name('order.show');
+    Route::get('/order-items', [OrderController::class, 'orderItems'])->name('order-items');
+    Route::post('/order-items', [OrderController::class, 'orderItemsStore'])->name('order-items.store');
+    Route::get('/order-history', [OrderController::class, 'orderHistory'])->name('order-history');
+    Route::get('/cart', [OrderController::class, 'cart'])->name('cart');
+    Route::get('/history', [OrderController::class, 'orderHistory'])->name('history');
+    Route::post('/cart/add', [OrderController::class, 'addToCart'])->name('cart.add');
+    Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+
+    // ===== PAYMENT (SPRINT 1 DUMMY) =====
+    Route::post('/payments/{order}/pay', [PaymentController::class, 'pay'])->name('payments.pay');
+
+    // ===== TRANSACTIONS (SPRINT 1 DUMMY) =====
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
+    
+    // API: transactions (DB-backed)
+    Route::get('/api/transactions', [TransactionController::class, 'indexApi'])->name('api.transactions');
+    Route::get('/api/transactions/{id}', [TransactionController::class, 'showApi'])->name('api.transactions.show');
+    Route::get('/midtrans-test', function () {
+        return config('midtrans.server_key');
+    });
+
+    // ===== SHIPPING & REPORTS API (backend JSON endpoints) =====
+    // Track by resi (returns JSON, can proxy to external provider if configured)
+    Route::get('/api/tracking/{resi}', [\App\Http\Controllers\Dropshipper\ShippingController::class, 'track'])
+        ->name('api.tracking');
+
+    // Reports: summary and list (paginated) with estimated margin
+    Route::get('/api/reports/summary', [\App\Http\Controllers\Dropshipper\ReportController::class, 'summary'])
+        ->name('api.reports.summary');
+    Route::get('/api/reports/orders', [\App\Http\Controllers\Dropshipper\ReportController::class, 'orders'])
+        ->name('api.reports.orders');
+
 });
 
 // ============================================
@@ -278,3 +316,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
         return redirect()->route('superadmin.dropshippers');
     })->name('admin.dropshippers');
 });
+
+Route::post('/midtrans/callback', 
+    [MidtransCallbackController::class, 'handle']
+);
+

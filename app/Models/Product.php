@@ -32,4 +32,10 @@ class Product extends Model
     {
         return $this->hasOne(Image::class)->where('is_primary', true);
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
 }
