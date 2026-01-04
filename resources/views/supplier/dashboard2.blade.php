@@ -81,16 +81,16 @@
         </p>
 
         <nav class="space-y-1">
-            <a href="{{ route('supplier.profile') }}"
+            <a href="{{ route('supplier.profil.edit') }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 12a5 5 0 100-10 5 5 0 000 10z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-                </svg>
-                Profil
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 12a5 5 0 100-10 5 5 0 000 10z"/>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+            </svg>
+            Profil
             </a>
 
             <a href="{{ route('supplier.pengaturan') }}"

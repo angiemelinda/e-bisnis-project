@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Models\User;
 use App\Http\Controllers\Supplier\ProdukController;
+use App\Http\Controllers\Supplier\SupplierController;
+use App\Http\Controllers\Supplier\PesananController;
+use App\Http\Controllers\Supplier\ProfilController;
 
 // ============================================
 // PUBLIC ROUTES
@@ -92,6 +95,8 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('sup
     Route::get('/reports', function () {
         return view('superadmin.reports');
     })->name('reports');
+
+    Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
 });
 
 // ============================================
@@ -171,11 +176,10 @@ Route::middleware(['auth', 'role:admin_laporan'])->prefix('adminlaporan')->name(
 // ============================================
 // SUPPLIER ROUTES
 // ============================================
-
 Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier.')->group(function () {
 
+    // Dashboard
     Route::get('/dashboard', function () {
-
         $totalProduk   = 12;
         $totalOrders   = 25;
         $totalStok     = 80;
@@ -209,27 +213,26 @@ Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier
         ));
     })->name('dashboard');
 
+    // Pengaturan
+    Route::get('/pengaturan', fn () => view('supplier.pengaturan.index'))
+        ->name('pengaturan');
 
-    // PRODUK
-    Route::prefix('produk')->name('produk.')->group(function () {
-        Route::get('/', fn () => view('supplier.produk.index'))->name('index');
-        Route::get('/create', fn () => view('supplier.produk.create'))->name('create');
-        Route::get('/edit/{id}', fn ($id) => view('supplier.produk.edit', compact('id')))->name('edit');
-    });
+    // Resource Produk
+    Route::resource('produk', ProdukController::class);
 
-    // PESANAN
-    Route::prefix('pesanan')->name('pesanan.')->group(function () {
-        Route::get('/', fn () => view('supplier.pesanan.index'))->name('index');
-        Route::get('/{id}', fn ($id) => view('supplier.pesanan.show', compact('id')))->name('show');
-    });
+    // Pesanan
+    Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
+    Route::get('/pesanan/{id}', [PesananController::class, 'show'])->name('pesanan.show');
 
-    // PROFIL
-    Route::get('/profile', fn () => view('supplier.profile'))->name('profile');
+    // Profil (edit & update)
+    Route::get('/profil', [\App\Http\Controllers\Supplier\ProfilController::class, 'edit'])->name('profil.edit');
+    Route::put('/profil', [\App\Http\Controllers\Supplier\ProfilController::class, 'update'])->name('profil.update');
 
-    //PENGATURAN
-    Route::get('/pengaturan', fn () => view('supplier.pengaturan'))->name('pengaturan');
+    // Ganti password
+    Route::get('/password', [\App\Http\Controllers\Supplier\ProfilController::class, 'editPassword'])->name('password.change');
+    Route::put('/password', [\App\Http\Controllers\Supplier\ProfilController::class, 'updatePassword'])->name('password.update');
+
 });
-
 
 // ============================================
 // DROPSHIPPER ROUTES

@@ -4,6 +4,17 @@
 @section('header', 'Dashboard')
 
 @section('content')
+
+                <!-- Logout Superadmin -->
+                <div class="flex justify-end mb-4">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+                
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <!-- Total Orders -->
