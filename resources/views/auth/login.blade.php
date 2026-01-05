@@ -81,22 +81,8 @@
                 <div class="absolute inset-0 flex items-center">
                     <div class="w-full border-t border-gray-200"></div>
                 </div>
-                <div class="relative flex justify-center text-xs">
-                    <span class="px-3 bg-white text-gray-500">Atau masuk dengan</span>
-                </div>
             </div>
 
-            <!-- Social Login -->
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" class="flex items-center justify-center py-2.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
-                    <i class="fab fa-google text-red-500 mr-2"></i>
-                    Google
-                </button>
-                <button type="button" class="flex items-center justify-center py-2.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
-                    <i class="fab fa-facebook text-blue-600 mr-2"></i>
-                    Facebook
-                </button>
-            </div>
 
             <!-- Register Link -->
             <div class="mt-6 text-center">

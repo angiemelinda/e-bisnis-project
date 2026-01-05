@@ -4,6 +4,18 @@
 @section('header', 'Produk')
 
 @section('content')
+@if(session('success'))
+    <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        {{ session('error') }}
+    </div>
+@endif
+
 <!-- Tombol Tambah Produk -->
 <div class="flex justify-end mb-4">
     <a href="{{ route('superadmin.products.create') }}" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow">Tambah Produk</a>
@@ -16,7 +28,7 @@
             <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Gambar</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Nama Produk</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Supplier</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Kategori</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Stok</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Harga</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
@@ -30,9 +42,9 @@
                     <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-12 h-12 object-cover rounded">
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $product->name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $product->supplier->name ?? '-' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $product->category->name ?? '-' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $product->stock }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${{ number_format($product->price,2) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     @if($product->is_active)
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>

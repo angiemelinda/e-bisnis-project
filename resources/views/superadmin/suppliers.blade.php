@@ -15,29 +15,32 @@
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-            @php
-                $suppliers = [
-                    ['name'=>'Supplier A','email'=>'supplierA@example.com','phone'=>'08123456789','active'=>true],
-                    ['name'=>'Supplier B','email'=>'supplierB@example.com','phone'=>'08198765432','active'=>false],
-                    ['name'=>'Supplier C','email'=>'supplierC@example.com','phone'=>'08111222333','active'=>true],
-                ];
-            @endphp
-            @foreach($suppliers as $s)
+            @forelse($suppliers as $supplier)
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $s['name'] }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $s['email'] }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $s['phone'] }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $supplier->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $supplier->email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $supplier->phone ?? '-' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        @if($s['active'])
+                        @if(isset($supplier->is_active) && $supplier->is_active)
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
                         @else
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Nonaktif</span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
                         @endif
                     </td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Tidak ada data supplier
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
-    <div class="mt-4 text-sm text-gray-500">Data contoh untuk tampilan.</div>
+    
+    <!-- Pagination -->
+    <div class="mt-4">
+        {{ $suppliers->links() }}
+    </div>
 @endsection
 

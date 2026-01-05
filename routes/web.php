@@ -15,6 +15,8 @@ use App\Http\Controllers\MidtransCallbackController;
 // ADMIN
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\SuperAdmin\UserController;
 use App\Models\User;
 use App\Http\Controllers\Supplier\ProdukController;
 use App\Http\Controllers\Supplier\SupplierController;
@@ -64,37 +66,34 @@ Route::get('/forgot-password', function () {
 // ============================================
 
 Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('superadmin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
 
-    Route::get('/users', function () {
-        $users = User::orderByDesc('id')->paginate(10);
-        return view('superadmin.users', compact('users'));
-    })->name('users');
+    // User Management Routes
+    Route::get('/users', [UserController::class, 'index'])->name('users');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 
     
-    Route::get('/suppliers', function () {
-        return view('superadmin.suppliers');
-    })->name('suppliers');
+    Route::get('/suppliers', [SuperAdminController::class, 'suppliers'])->name('suppliers');
     
-    Route::get('/dropshippers', function () {
-        return view('superadmin.dropshippers');
-    })->name('dropshippers');
+    Route::get('/dropshippers', [SuperAdminController::class, 'dropshippers'])->name('dropshippers');
 
     Route::get('/products', [AdminProductController::class, 'index'])->name('products');
+    Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
     Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     
-    Route::get('/transactions', function () {
-        return view('superadmin.transactions');
-    })->name('transactions');
+    Route::get('/transactions', [SuperAdminController::class, 'transactions'])->name('transactions');
     
-    Route::get('/reports', function () {
-        return view('superadmin.reports');
-    })->name('reports');
+    Route::get('/reports', [SuperAdminController::class, 'reports'])->name('reports');
 
     Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
 });
@@ -179,39 +178,7 @@ Route::middleware(['auth', 'role:admin_laporan'])->prefix('adminlaporan')->name(
 Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier.')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        $totalProduk   = 12;
-        $totalOrders   = 25;
-        $totalStok     = 80;
-        $outOfStock    = 3;
-
-        $pesananTerbaru = [
-            (object)['id'=>101, 'status'=>'belum diproses'],
-            (object)['id'=>102, 'status'=>'sedang dikirim'],
-            (object)['id'=>103, 'status'=>'selesai'],
-        ];
-
-        $produkTeratas = [
-            (object)['nama'=>'Kaos Polos', 'stok'=>3],
-            (object)['nama'=>'Totebag Custom', 'stok'=>7],
-        ];
-
-        $notifikasi = [
-            (object)['message'=>'Pesanan baru masuk #104'],
-            (object)['message'=>'Produk Kaos Polos hampir habis'],
-            (object)['message'=>'Promo baru tersedia'],
-        ];
-
-        return view('supplier.dashboard2', compact(
-            'totalProduk',
-            'totalOrders',
-            'totalStok',
-            'outOfStock',
-            'pesananTerbaru',
-            'produkTeratas',
-            'notifikasi'
-        ));
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Supplier\DashboardController::class, 'index'])->name('dashboard');
 
     // Pengaturan
     Route::get('/pengaturan', fn () => view('supplier.pengaturan.index'))
@@ -219,10 +186,17 @@ Route::middleware(['auth', 'role:supplier'])->prefix('supplier')->name('supplier
 
     // Resource Produk
     Route::resource('produk', ProdukController::class);
+    
+    // Route aliases for sidebar navigation
+    Route::get('/my-products', [ProdukController::class, 'index'])->name('my-products');
+    Route::get('/orders', [PesananController::class, 'index'])->name('orders');
 
     // Pesanan
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::get('/pesanan/{id}', [PesananController::class, 'show'])->name('pesanan.show');
+    
+    // Earnings/Pendapatan
+    Route::get('/earnings', [\App\Http\Controllers\Supplier\EarningsController::class, 'index'])->name('earnings');
 
     // Profil (edit & update)
     Route::get('/profil', [\App\Http\Controllers\Supplier\ProfilController::class, 'edit'])->name('profil.edit');

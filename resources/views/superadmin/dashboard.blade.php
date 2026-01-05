@@ -25,10 +25,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                                 </svg>
                             </div>
-                            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">+12.5%</span>
+                            <span class="text-xs font-medium {{ $ordersGrowth >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50' }} px-2 py-1 rounded">{{ $ordersGrowth >= 0 ? '+' : '' }}{{ number_format($ordersGrowth, 1) }}%</span>
                         </div>
                         <h3 class="text-gray-500 text-sm font-medium mb-1">Total Orders</h3>
-                        <p class="text-3xl font-bold text-orange-500">2,847</p>
+                        <p class="text-3xl font-bold text-orange-500">{{ number_format($totalOrders) }}</p>
                         <p class="text-xs text-gray-400 mt-2">Order bulan ini</p>
                     </div>
 
@@ -40,11 +40,11 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <span class="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">89.3%</span>
+                            <span class="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">{{ number_format($paymentSuccessRate, 1) }}%</span>
                         </div>
                         <h3 class="text-gray-500 text-sm font-medium mb-1">Payment Success</h3>
-                        <p class="text-3xl font-bold text-orange-500">2,543</p>
-                        <p class="text-xs text-gray-400 mt-2">304 pending payment</p>
+                        <p class="text-3xl font-bold text-orange-500">{{ number_format($paidOrders) }}</p>
+                        <p class="text-xs text-gray-400 mt-2">{{ number_format($pendingPayment) }} pending payment</p>
                     </div>
 
                     <!-- Total Transactions -->
@@ -55,10 +55,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">+18.2%</span>
+                            <span class="text-xs font-medium {{ $revenueGrowth >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50' }} px-2 py-1 rounded">{{ $revenueGrowth >= 0 ? '+' : '' }}{{ number_format($revenueGrowth, 1) }}%</span>
                         </div>
                         <h3 class="text-gray-500 text-sm font-medium mb-1">Total Transaksi</h3>
-                        <p class="text-3xl font-bold text-orange-500">Rp 8.4M</p>
+                        <p class="text-3xl font-bold text-orange-500">Rp {{ number_format($totalRevenue / 1000000, 1) }}M</p>
                         <p class="text-xs text-gray-400 mt-2">Volume transaksi bulan ini</p>
                     </div>
 
@@ -70,10 +70,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
                             </div>
-                            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">+8.7%</span>
+                            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">{{ number_format(($revenueGrowth * 0.1), 1) }}%</span>
                         </div>
                         <h3 class="text-gray-500 text-sm font-medium mb-1">Biaya Platform</h3>
-                        <p class="text-3xl font-bold text-orange-500">Rp 420K</p>
+                        <p class="text-3xl font-bold text-orange-500">Rp {{ number_format($platformFees / 1000, 0) }}K</p>
                         <p class="text-xs text-gray-400 mt-2">Fee terkumpul bulan ini</p>
                     </div>
                 </div>
@@ -111,21 +111,21 @@
                                     <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
                                     <span class="text-sm text-gray-600">Lunas</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-800">89.3%</span>
+                                <span class="text-sm font-semibold text-gray-800">{{ number_format($paymentDistribution['paid'], 1) }}%</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
                                     <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
                                     <span class="text-sm text-gray-600">Pending</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-800">8.2%</span>
+                                <span class="text-sm font-semibold text-gray-800">{{ number_format($paymentDistribution['pending'], 1) }}%</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
                                     <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
                                     <span class="text-sm text-gray-600">Gagal</span>
                                 </div>
-                                <span class="text-sm font-semibold text-gray-800">2.5%</span>
+                                <span class="text-sm font-semibold text-gray-800">{{ number_format($paymentDistribution['failed'], 1) }}%</span>
                             </div>
                         </div>
                     </div>
@@ -135,48 +135,37 @@
                 <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h3>
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                        @forelse($recentActivities as $activity)
+                        <div class="flex items-center justify-between py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4
+                                    {{ $activity['icon'] === 'check' ? 'bg-green-100' : ($activity['icon'] === 'order' ? 'bg-orange-100' : 'bg-blue-100') }}">
+                                    @if($activity['icon'] === 'check')
                                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800">Order #ORD-2847 berhasil dibayar</p>
-                                    <p class="text-xs text-gray-500">PT Maju Jaya - Rp 1,250,000</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-gray-400">2 menit lalu</span>
-                        </div>
-                        <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                                    @elseif($activity['icon'] === 'order')
                                     <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                                     </svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800">Order baru #ORD-2846</p>
-                                    <p class="text-xs text-gray-500">CV Berkah - Rp 850,000</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-gray-400">15 menit lalu</span>
-                        </div>
-                        <div class="flex items-center justify-between py-3">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                    @else
                                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                     </svg>
+                                    @endif
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-800">User baru terdaftar</p>
-                                    <p class="text-xs text-gray-500">UD Sejahtera bergabung sebagai dropshipper</p>
+                                    <p class="text-sm font-medium text-gray-800">{{ $activity['message'] }}</p>
+                                    <p class="text-xs text-gray-500">{{ $activity['detail'] }}</p>
                                 </div>
                             </div>
-                            <span class="text-xs text-gray-400">1 jam lalu</span>
+                            <span class="text-xs text-gray-400">{{ $activity['time'] }}</span>
                         </div>
+                        @empty
+                        <div class="text-center py-8 text-gray-500">
+                            <p>Tidak ada aktivitas terbaru</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
 @endsection
@@ -188,10 +177,10 @@
     new Chart(ctx1, {
         type: 'line',
         data: {
-            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+            labels: {!! json_encode($trendLabels) !!},
             datasets: [{
                 label: 'Transaksi (Juta Rp)',
-                data: [1.2, 1.5, 1.1, 1.8, 1.6, 1.9, 2.1],
+                data: {!! json_encode($trendData) !!},
                 borderColor: '#F97316',
                 backgroundColor: 'rgba(249, 115, 22, 0.1)',
                 tension: 0.4,
@@ -238,7 +227,7 @@
         data: {
             labels: ['Lunas', 'Pending', 'Gagal'],
             datasets: [{
-                data: [89.3, 8.2, 2.5],
+                data: [{{ number_format($paymentDistribution['paid'], 1) }}, {{ number_format($paymentDistribution['pending'], 1) }}, {{ number_format($paymentDistribution['failed'], 1) }}],
                 backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
                 borderWidth: 0
             }]
@@ -256,3 +245,4 @@
     });
 </script>
 @endpush
+

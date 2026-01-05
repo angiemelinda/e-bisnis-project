@@ -7,6 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff6b35',
+                        secondary: '#f7931e',
+                        dark: '#1a1a1a',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -17,64 +31,10 @@
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg flex flex-col">
-            <div class="p-6 border-b border-gray-100">
-                <h1 class="text-2xl font-bold text-orange-500">Grosir Hub</h1>
-                <p class="text-xs text-gray-500 mt-1">Admin Panel</p>
-            </div>
-            <nav class="flex-1 p-4 overflow-y-auto">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 mb-2 {{ request()->routeIs('admin.dashboard') ? 'text-orange-500 bg-orange-50' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg font-medium transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                    Dashboard
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    Manajemen Pengguna
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                    </svg>
-                    Manajemen Produk
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                    </svg>
-                    Order B2B
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Biaya Platform
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 mb-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Laporan
-                </a>
-            </nav>
-            <div class="p-4 border-t border-gray-100">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                        <span class="text-orange-500 font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        @include('partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <main class="flex-1 overflow-y-auto ml-64">
             <!-- Top Header -->
             <header class="bg-white shadow-sm border-b border-gray-100">
                 <div class="px-8 py-4 flex items-center justify-between">
@@ -97,10 +57,30 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-8">
+            <div class="p-8">
+                <!-- Success Message -->
+                @if(session('success'))
+                    <div class="mb-4 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-3 text-green-500"></i>
+                            <p class="font-medium">{{ session('success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Error Message -->
+                @if(session('error'))
+                    <div class="mb-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+                            <p class="font-medium">{{ session('error') }}</p>
+                        </div>
+                    </div>
+                @endif
+
                 @yield('content')
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
     <script>

@@ -5,7 +5,7 @@
 
 @if(auth()->check())
 
-<aside class="w-64 bg-white shadow-lg h-screen fixed left-0 top-0 overflow-y-auto">
+<aside class="w-64 bg-white shadow-lg h-screen fixed left-0 top-0 overflow-y-auto z-50">
     <div class="p-6 border-b border-gray-200">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-r from-primary to-secondary p-2 rounded-lg">

@@ -56,15 +56,23 @@ class AuthController extends Controller
                 'phone' => $validated['phone'],
                 'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
+                'is_active' => true, // Aktifkan user baru secara default
+                'email_verified_at' => now(), // Verifikasi email otomatis
             ]);
         } catch (\Exception $e) {
             Log::error('Registration failed', ['error' => $e->getMessage()]);
             return back()->withErrors(['error' => 'Terjadi kesalahan pada server'])->withInput();
         }
 
+        // Login user secara otomatis setelah registrasi
         Auth::login($user);
+        
+        // Regenerate session untuk keamanan
+        $request->session()->regenerate();
 
-        return $this->redirectByRole($user->role)->with('success', 'Registrasi berhasil!');
+        // Redirect ke dashboard sesuai role dengan pesan sukses
+        return $this->redirectByRole($user->role)
+            ->with('success', 'Registrasi berhasil! Selamat datang, ' . $user->name . '!');
     }
 
     public function showLogin()
@@ -84,10 +92,26 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // Cek apakah user ada dan aktif
+        $user = User::where('email', $credentials['email'])->first();
+        
+        if ($user && !$user->is_active) {
+            return back()->withErrors(['email' => 'Akun Anda belum aktif. Silakan hubungi administrator.'])->onlyInput('email');
+        }
+
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             $role = Auth::user()->role;
-            return $this->redirectByRole($role)->with('success', 'Login berhasil!');
+            
+            // Log login success
+            Log::info('User logged in', [
+                'user_id' => Auth::id(),
+                'email' => Auth::user()->email,
+                'role' => $role
+            ]);
+            
+            return $this->redirectByRole($role)
+                ->with('success', 'Login berhasil! Selamat datang, ' . Auth::user()->name . '!');
         }
 
         return back()->withErrors(['email' => 'Email atau password salah'])->onlyInput('email');

@@ -15,29 +15,32 @@
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-            @php
-                $dropshippers = [
-                    ['name'=>'Dropshipper A','email'=>'dropshipA@example.com','phone'=>'08123456788','active'=>true],
-                    ['name'=>'Dropshipper B','email'=>'dropshipB@example.com','phone'=>'08198765431','active'=>true],
-                    ['name'=>'Dropshipper C','email'=>'dropshipC@example.com','phone'=>'08111222330','active'=>false],
-                ];
-            @endphp
-            @foreach($dropshippers as $d)
+            @forelse($dropshippers as $dropshipper)
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $d['name'] }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $d['email'] }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $d['phone'] }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $dropshipper->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $dropshipper->email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $dropshipper->phone ?? '-' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        @if($d['active'])
+                        @if(isset($dropshipper->is_active) && $dropshipper->is_active)
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
                         @else
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Nonaktif</span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
                         @endif
                     </td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                        Tidak ada data dropshipper
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
-    <div class="mt-4 text-sm text-gray-500">Data contoh untuk tampilan.</div>
+    
+    <!-- Pagination -->
+    <div class="mt-4">
+        {{ $dropshippers->links() }}
+    </div>
 @endsection
 

@@ -6,14 +6,14 @@
 @section('content')
 <!-- Filter Tanggal -->
 <div class="bg-white shadow rounded-lg p-5 mb-6">
-    <form action="{{ route('superadmin.reports.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-center">
+    <form action="{{ route('superadmin.reports') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-center">
         <div>
             <label class="block text-gray-700 font-medium mb-1">Dari Tanggal</label>
-            <input type="date" name="from" class="border rounded px-3 py-2 w-full sm:w-64">
+            <input type="date" name="from" value="{{ $fromDate->format('Y-m-d') }}" class="border rounded px-3 py-2 w-full sm:w-64">
         </div>
         <div>
             <label class="block text-gray-700 font-medium mb-1">Sampai Tanggal</label>
-            <input type="date" name="to" class="border rounded px-3 py-2 w-full sm:w-64">
+            <input type="date" name="to" value="{{ $toDate->format('Y-m-d') }}" class="border rounded px-3 py-2 w-full sm:w-64">
         </div>
         <div class="mt-4 sm:mt-0">
             <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow">Filter</button>
