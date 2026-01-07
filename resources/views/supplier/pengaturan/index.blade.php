@@ -117,54 +117,77 @@
             </div>
         </div>
 
-        <!-- PEMBAYARAN -->
-        <div id="pembayaran" class="tab-pane hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- PEMBAYARAN -->
+<div id="pembayaran" class="tab-pane hidden">
 
-                <!-- E-Wallet -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-xl transition">
-                    <h2 class="text-lg font-semibold mb-4 text-gray-800">E-Wallet</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        @php
-                        $ewallets = ['Dana', 'OVO', 'GoPay', 'ShopeePay'];
-                        @endphp
-                        @foreach($ewallets as $wallet)
-                        <div class="flex justify-between items-center p-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition cursor-pointer">
-                            <div class="flex items-center space-x-3">
-                                <img src="/icons/{{ strtolower($wallet) }}.png" alt="{{ $wallet }}" class="w-12 h-12 rounded-full">
-                                <span class="font-medium text-gray-800">{{ $wallet }}</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer toggle-wrapper">
-                                <input type="checkbox" class="sr-only toggle-input">
-                                <div class="w-12 h-6 bg-gray-300 rounded-full peer transition-colors duration-300"></div>
-                                <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-green-500 rounded-full shadow-md transition-transform duration-300 toggle-thumb"></span>
-                            </label>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
+    <!-- Header Section -->
+    <div class="mb-10">
+        <h2 class="text-2xl font-semibold text-gray-800">Metode Pembayaran</h2>
+        <p class="text-gray-500 mt-1">
+            Metode pembayaran yang tersedia untuk pelanggan GrosirHub saat bertransaksi dengan toko Anda.
+        </p>
+    </div>
 
-                <!-- Kartu Kredit / Debit -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-xl transition">
-                    <h2 class="text-lg font-semibold mb-4 text-gray-800">Kartu Kredit / Debit</h2>
-                    <p class="text-gray-500 mb-4">Pilih bank yang tersedia untuk pembayaran:</p>
-                    @php
-                    $banks = ['BCA', 'BNI', 'Mandiri', 'BRI', 'CIMB Niaga'];
-                    @endphp
-                    <div class="grid grid-cols-1 gap-4">
-                        @foreach($banks as $bank)
-                        <div class="flex items-center p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition cursor-pointer">
-                            <img src="/icons/bank.png" alt="{{ $bank }}" class="w-12 h-12 rounded-full">
-                            <span class="font-medium text-gray-800 ml-3">{{ $bank }}</span>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-
-            </div>
+    <!-- E-WALLET SECTION -->
+    <div class="mb-12">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold text-gray-700">E-Wallet</h3>
+            <span class="text-sm text-gray-400">Pembayaran instan & populer</span>
         </div>
 
+        <div class="space-y-4">
+            @php
+                $ewallets = [
+                    ['name'=>'GoPay','desc'=>'Terhubung dengan Gojek'],
+                    ['name'=>'OVO','desc'=>'Pembayaran cepat & promo'],
+                    ['name'=>'DANA','desc'=>'Dompet digital nasional'],
+                    ['name'=>'ShopeePay','desc'=>'Terintegrasi Shopee']
+                ];
+            @endphp
+
+            @foreach($ewallets as $wallet)
+            <div class="flex items-center justify-between px-6 py-4 rounded-full bg-gradient-to-r from-orange-50 to-white hover:from-orange-100 transition">
+                <div>
+                    <p class="font-medium text-gray-800">{{ $wallet['name'] }}</p>
+                    <p class="text-sm text-gray-500">{{ $wallet['desc'] }}</p>
+                </div>
+                <span class="text-xs font-semibold text-orange-600 bg-orange-100 px-4 py-1 rounded-full">
+                    Tersedia
+                </span>
+            </div>
+            @endforeach
+        </div>
     </div>
+
+    <!-- DIVIDER -->
+    <div class="border-t border-dashed border-gray-300 my-10"></div>
+
+    <!-- KARTU DEBIT SECTION -->
+    <div>
+        <div class="mb-5">
+            <h3 class="text-lg font-semibold text-gray-700">Kartu Debit</h3>
+            <p class="text-sm text-gray-500 mt-1">
+                Pembayaran menggunakan kartu debit dari bank berikut.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+            @php
+                $banks = ['BCA', 'BNI', 'BRI', 'Mandiri', 'CIMB Niaga'];
+            @endphp
+
+            @foreach($banks as $bank)
+            <div class="px-6 py-2 rounded-full bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition">
+                {{ $bank }}
+            </div>
+            @endforeach
+        </div>
+
+        <p class="text-xs text-gray-400 mt-4">
+            * Kartu debit harus mendukung transaksi online dan 3D Secure.
+        </p>
+    </div>
+
 </div>
 
 <script>
