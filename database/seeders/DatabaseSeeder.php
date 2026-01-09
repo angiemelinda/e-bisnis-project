@@ -56,5 +56,17 @@ class DatabaseSeeder extends Seeder
                 'role' => 'dropshipper',
             ]
         );
+
+        // Seed default Supplier
+        User::updateOrCreate(
+            ['email' => 'supplier@example.com'],
+            [
+                'name' => 'Supplier Demo',
+                'email' => 'supplier@example.com',
+                'password' => Hash::make('supplier123'),
+                'phone' => '081234567892',
+                'role' => 'supplier',
+            ]
+        );
     }
 }

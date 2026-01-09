@@ -1,182 +1,9 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Supplier</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#f97316',
-                        'primary-dark': '#ea580c',
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-gray-100 font-inter min-h-screen flex">
+@extends('layouts.supplier')
 
-    <!-- Sidebar Vertikal -->
-<aside class="w-64 bg-white shadow-lg flex flex-col border-r">
+@section('title', 'Produk')
+@section('header', 'Produk')
 
-    <!-- Logo -->
-    <div class="p-6 text-2xl font-bold text-orange-500 border-b">
-        Grosir<span class="text-gray-800">Hub</span>
-    </div>
-
-    <!-- MAIN MENU -->
-    <div class="px-4 mt-6">
-        <p class="text-xs font-semibold text-gray-400 uppercase mb-3">
-            Menu Utama
-        </p>
-
-        <nav class="space-y-1">
-            <!-- Dashboard -->
-            <a href="{{ route('supplier.dashboard') }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('supplier.dashboard') ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-500' : 'text-gray-700 hover:bg-gray-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 10.5L12 3l9 7.5M5 10v10h5v-6h4v6h5V10"/>
-                </svg>
-                Dashboard
-            </a>
-
-            <!-- Produk -->
-            <a href="{{ route('supplier.produk.index') }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('supplier.produk.*') ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-500' : 'text-gray-700 hover:bg-gray-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                    viewBox="0 0 24 24">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    <path d="M3.3 7L12 12l8.7-5M12 22V12"/>
-                </svg>
-                Produk
-            </a>
-
-            <!-- Pesanan -->
-            <a href="{{ route('supplier.pesanan.index') }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('supplier.pesanan.*') ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-500' : 'text-gray-700 hover:bg-gray-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                    viewBox="0 0 24 24">
-                    <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/>
-                    <path d="M9 6h6M9 10h6M9 14h4"/>
-                </svg>
-                Pesanan
-            </a>
-        </nav>
-
-        <!-- PEMBATAS -->
-        <div class="my-6 border-t"></div>
-
-        <!-- PENGATURAN -->
-        <p class="text-xs font-semibold text-gray-400 uppercase mt-8 mb-3">
-            Pengaturan
-        </p>
-
-        <nav class="space-y-1">
-            <a href="{{ route('supplier.profil.edit') }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 12a5 5 0 100-10 5 5 0 000 10z"/>
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-            </svg>
-            Profil
-            </a>
-
-            <a href="{{ route('supplier.pengaturan') }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.591 1.066
-                        1.724 1.724 0 012.356 2.356 1.724 1.724 0 001.066 2.591c1.756.426 1.756 2.924 0 3.35
-                        a1.724 1.724 0 00-1.066 2.591 1.724 1.724 0 01-2.356 2.356
-                        1.724 1.724 0 00-2.591 1.066c-.426 1.756-2.924 1.756-3.35 0
-                        a1.724 1.724 0 00-2.591-1.066 1.724 1.724 0 01-2.356-2.356
-                        1.724 1.724 0 00-1.066-2.591c-1.756-.426-1.756-2.924 0-3.35
-                        a1.724 1.724 0 001.066-2.591 1.724 1.724 0 012.356-2.356
-                        1.724 1.724 0 002.591-1.066z" />
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Pengaturan
-            </a>
-
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit"
-                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M18 12H9m0 0l3-3m-3 3l3 3" />
-                    </svg>
-                    Logout
-                </button>
-            </form>
-        </nav>
-    </div>
-</aside>
-
-    <!-- Konten Utama -->
-    <main class="flex-1 p-6 max-w-7xl mx-auto space-y-6">
-
-        <!-- Header atas sebelum hero card -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-            <!-- Sapaan -->
-            <div class="text-gray-800 font-semibold text-lg">
-                Hi, {{ Auth::user()->name }}
-            </div>
-
-            <!-- Search Produk -->
-            <form action="{{ route('supplier.produk.index') }}" method="GET" class="flex-1 max-w-md">
-                <div class="relative flex items-center">
-                    <svg class="w-5 h-5 absolute left-3 text-gray-400" fill="none" stroke="currentColor"
-                        stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-4.35-4.35m0 0a7 7 0 10-9.9-9.9 7 7 0 009.9 9.9z"/>
-                    </svg>
-
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ request('search') }}"
-                        placeholder="Cari produk..."
-                        class="w-full pl-10 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 focus:outline-none"
-                    >
-                </div>
-            </form>
-
-            <!-- Ikon Pesan, Notifikasi, Pengaturan dengan warna -->
-            <div class="flex items-center gap-3">
-                <button class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-                    <!-- Pesan Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 
-                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"></path>
-                    </svg>
-                </button>
-                <button class="p-2 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500">
-                    <!-- Notifikasi Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 
-                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
+@section('content')
 
     {{-- Konten Utama --}}
     <div class="flex-1 p-4">
@@ -188,10 +15,10 @@
                     <p class="text-white/90 mb-4">Pantau terus produkmu dan kelola stok dengan mudah.</p>
 
                     {{-- Tombol Tambah Produk --}}
-                    <a href="{{ route('supplier.produk.create') }}" 
+                    <button onclick="openAddProductModal()" 
                        class="inline-block bg-white text-orange-600 font-semibold px-4 py-2 rounded-md shadow hover:bg-gray-100">
                        + Tambah Produk
-                    </a>
+                    </button>
                 </div>
                 <div class="h-full flex items-center">
                     <img src="/path/to/supplier-promo.png" class="h-40 object-cover rounded-lg">
@@ -315,3 +142,192 @@
     </div>
 </div>
 
+<!-- Modal Tambah Produk -->
+<div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <!-- Header Modal -->
+        <div class="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 border-b">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold">Tambah Produk Baru</h2>
+                <button onclick="closeAddProductModal()" class="text-white hover:text-gray-200 text-2xl leading-none">&times;</button>
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <form id="addProductForm" class="p-6 space-y-4">
+            @csrf
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                <span>Produk berhasil ditambahkan!</span>
+            </div>
+
+            <!-- Error Messages -->
+            <div id="errorMessages" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded"></div>
+
+            <!-- Nama Produk -->
+            <div>
+                <label class="block mb-1 font-medium text-gray-700">Nama Produk <span class="text-red-500">*</span></label>
+                <input type="text" name="name" placeholder="Nama Produk" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+            </div>
+
+            <!-- Kategori -->
+            <div>
+                <label class="block mb-1 font-medium text-gray-700">Kategori</label>
+                <select name="category_id" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <option value="">Pilih Kategori</option>
+                    @if(isset($categories))
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
+            <!-- Harga & Stok -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block mb-1 font-medium text-gray-700">Harga <span class="text-red-500">*</span></label>
+                    <input type="number" name="price" step="0.01" min="0" placeholder="0.00" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label class="block mb-1 font-medium text-gray-700">Stok <span class="text-red-500">*</span></label>
+                    <input type="number" name="stock" min="0" placeholder="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block mb-1 font-medium text-gray-700">Status</label>
+                <select name="status" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <option value="active" selected>Aktif</option>
+                    <option value="inactive">Nonaktif</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-4 border-t">
+                <button type="button" onclick="closeAddProductModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
+                    Batal
+                </button>
+                <button type="submit" id="submitBtn" class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium">
+                    Simpan
+                </button>
+            </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript untuk Modal -->
+<script type="text/javascript">
+function openAddProductModal() {
+    console.log('Opening modal...');
+    const modal = document.getElementById('addProductModal');
+    console.log('Modal element:', modal);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        console.log('Modal opened');
+    } else {
+        console.error('Modal element not found!');
+    }
+}
+
+function closeAddProductModal() {
+    document.getElementById('addProductModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('addProductForm').reset();
+    document.getElementById('errorMessages').classList.add('hidden');
+    document.getElementById('successMessage').classList.add('hidden');
+}
+
+// Close modal ketika klik di luar modal
+document.getElementById('addProductModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAddProductModal();
+    }
+});
+
+// Handle form submission dengan AJAX
+document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    console.log('Form submitted');
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const errorDiv = document.getElementById('errorMessages');
+    const successDiv = document.getElementById('successMessage');
+    
+    // Reset messages
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
+    
+    try {
+        const formData = new FormData(this);
+        console.log('Form data prepared, sending request...');
+        
+        const response = await fetch('{{ route("supplier.produk.store") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok) {
+            // Show success message
+            console.log('Success! Showing success message');
+            successDiv.classList.remove('hidden');
+            
+            // Reset form
+            document.getElementById('addProductForm').reset();
+            
+            // Close modal setelah 2 detik
+            setTimeout(() => {
+                closeAddProductModal();
+                // Reload halaman untuk menampilkan produk baru
+                console.log('Reloading page...');
+                location.reload();
+            }, 1500);
+        } else {
+            // Show error messages
+            console.log('Error response. Errors:', data.errors);
+            if (data.errors) {
+                let errorHtml = '<ul class="list-disc list-inside">';
+                for (const [field, messages] of Object.entries(data.errors)) {
+                    messages.forEach(msg => {
+                        errorHtml += `<li>${msg}</li>`;
+                    });
+                }
+                errorHtml += '</ul>';
+                errorDiv.innerHTML = errorHtml;
+            } else {
+                errorDiv.textContent = data.message || 'Gagal menyimpan produk';
+            }
+            errorDiv.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        errorDiv.innerHTML = '<p>Terjadi kesalahan saat mengirim data. Silakan coba lagi.</p>';
+        errorDiv.classList.remove('hidden');
+    } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Simpan';
+    }
+});
+</script>
+
+@endsection

@@ -64,6 +64,18 @@
                 </svg>
                 Pesanan
             </a>
+
+            <!-- Pendapatan -->
+            <a href="{{ route('supplier.earnings') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+                {{ request()->routeIs('supplier.earnings') ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-500' : 'text-gray-700 hover:bg-gray-100' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Pendapatan
+            </a>
         </nav>
 
         <div class="my-6 border-t"></div>
@@ -134,7 +146,8 @@
             Hi, {{ Auth::user()->name }}
         </div>
 
-        <!-- Search Produk -->
+        <!-- Search Produk (Hanya di halaman Produk) -->
+        @if(request()->routeIs('supplier.produk.*'))
         <form action="{{ route('supplier.produk.index') }}" method="GET" class="flex-1 max-w-md">
             <div class="relative flex items-center">
                 <svg class="w-5 h-5 absolute left-3 text-gray-400" fill="none" stroke="currentColor"
@@ -147,15 +160,10 @@
                     class="w-full pl-10 p-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 focus:outline-none">
             </div>
         </form>
+        @endif
 
         <!-- Ikon Pesan & Notifikasi -->
         <div class="flex items-center gap-3">
-            <button class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-                <!-- Pesan Icon -->
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 
-                    viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"></path></svg>
-            </button>
             <button class="p-2 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500">
                 <!-- Notifikasi Icon -->
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 

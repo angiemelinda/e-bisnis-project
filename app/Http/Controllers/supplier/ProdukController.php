@@ -16,7 +16,8 @@ class ProdukController extends Controller
             ->with('category')
             ->latest()
             ->get();
-        return view('supplier.produk.index', compact('produks'));
+        $categories = Category::where('active', true)->orderBy('name')->get();
+        return view('supplier.produk.index', compact('produks', 'categories'));
     }
 
     public function create()
@@ -38,7 +39,7 @@ class ProdukController extends Controller
         // Generate SKU
         $sku = 'PRD-' . strtoupper(Str::random(8));
 
-        Product::create([
+        $product = Product::create([
             'sku' => $sku,
             'name' => $validated['name'],
             'category_id' => $validated['category_id'] ?? null,
@@ -47,6 +48,15 @@ class ProdukController extends Controller
             'stock' => $validated['stock'],
             'status' => $validated['status'] ?? 'active',
         ]);
+
+        // Check if request is AJAX (multiple methods to be safe)
+        if ($request->expectsJson() || $request->header('Accept') === 'application/json' || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil ditambahkan.',
+                'product' => $product
+            ], 201);
+        }
 
         return redirect()->route('supplier.produk.index')
             ->with('success', 'Produk berhasil ditambahkan.');
