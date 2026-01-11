@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Pesanan - GrosirHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script 
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ config('midtrans.client_key') }}">
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -101,11 +105,21 @@
                 <div class="text-right">
                     <p class="text-sm text-gray-600 mb-2">Status Pembayaran</p>
                     @if($order->payment_status === 'sudah_dibayar')
-                        <span class="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full font-semibold">✓ Sudah Dibayar</span>
+                        <span class="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full font-semibold">
+                            ✓ Sudah Dibayar
+                        </span>
                     @elseif($order->payment_status === 'menunggu_pembayaran')
-                        <span class="inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">⏳ Menunggu Pembayaran</span>
+                        <span class="inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">
+                            ⏳ Menunggu Pembayaran
+                        </span>
+                    @elseif($order->payment_status === 'dibatalkan')
+                        <span class="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">
+                            ✗ Pembayaran Kedaluwarsa
+                        </span>
                     @else
-                        <span class="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">✗ Pembayaran Gagal</span>
+                        <span class="inline-block bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">
+                            ✗ Pembayaran Gagal
+                        </span>
                     @endif
                 </div>
             </div>
@@ -113,7 +127,27 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
                 <div>
                     <p class="text-xs text-gray-600 uppercase tracking-wide mb-1">Status Pengiriman</p>
-                    <p class="text-lg font-semibold text-gray-900">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</p>
+                    @if($order->status === 'menunggu_pembayaran')
+                        <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Menunggu Pembayaran
+                        </span>
+                    @elseif($order->status === 'dikemas')
+                        <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Dikemas
+                        </span>
+                    @elseif($order->status === 'dikirim')
+                        <span class="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Dikirim
+                        </span>
+                    @elseif($order->status === 'selesai')
+                        <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Selesai
+                        </span>
+                    @elseif($order->status === 'dibatalkan')
+                        <span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Dibatalkan
+                        </span>
+                    @endif  
                 </div>
                 <div>
                     <p class="text-xs text-gray-600 uppercase tracking-wide mb-1">Kurir</p>
@@ -234,10 +268,17 @@
             <a href="{{ route('dropshipper.orders') }}" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 px-6 rounded-lg text-center transition">
                 Kembali
             </a>
-            @if($order->payment_status === 'menunggu_pembayaran')
-            <a href="#" class="flex-1 bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg text-center transition">
+            @if(
+                $order->payment_status === 'menunggu_pembayaran' &&
+                $order->status !== 'dibatalkan' &&
+                $order->snap_token
+            )
+            <button
+                onclick="payOrder('{{$order->snap_token}}')"
+                class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm text-center">
                 Bayar Sekarang
-            </a>
+            </button>
+
             @endif
         </div>
     </main>
@@ -272,4 +313,29 @@
         </div>
     </div>
 </body>
+<script>
+function payOrder(snapToken) {
+    if (!snapToken) {
+        alert('Pembayaran sudah kedaluwarsa. Silakan checkout ulang.');
+        return;
+    }
+
+    window.snap.pay(snapToken, {
+        onSuccess: function () {
+            window.location.href = "{{ route('dropshipper.orders') }}";
+        }
+
+        onPending: function () {
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        },
+        onError: function () {
+            alert('Pembayaran gagal');
+        }
+    });
+}
+</script>
+
+
 </html>

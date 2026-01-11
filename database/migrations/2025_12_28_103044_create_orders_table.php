@@ -21,11 +21,11 @@ return new class extends Migration {
 
             // STATUS PESANAN
             $table->enum('status', [
-                'belum_dibayar',
+                'menunggu_pembayaran',
                 'dikemas',
                 'dikirim',
                 'selesai'
-            ])->default('belum_dibayar');
+            ])->default('menunggu_pembayaran');
 
             // STATUS PEMBAYARAN
             $table->enum('payment_status', [

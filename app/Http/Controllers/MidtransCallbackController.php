@@ -116,10 +116,23 @@ class MidtransCallbackController extends Controller
                 $order->update([
                     'payment_status' => 'menunggu_pembayaran',
                 ]);
-            } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
-                $payment->update(['status' => 'gagal']);
+            } elseif ($transactionStatus === 'expire') {
+                // ⏰ pembayaran kedaluwarsa
+                $payment->update([
+                    'status' => 'dibatalkan',
+                ]);
+
                 $order->update([
-                    'payment_status' => 'menunggu_pembayaran',
+                    'payment_status' => 'dibatalkan',
+                    'status' => 'dibatalkan',
+                ]);
+            }
+            elseif (in_array($transactionStatus, ['deny', 'cancel'])) {
+                $payment->update(['status' => 'gagal']);
+
+                $order->update([
+                    'payment_status' => 'dibatalkan',
+                    'status' => 'dibatalkan',
                 ]);
             }
 

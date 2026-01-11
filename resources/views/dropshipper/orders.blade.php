@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesanan Saya - GrosirHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script 
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ config('midtrans.client_key') }}">
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -204,7 +208,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
                             @php
-                                $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                                $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'menunggu_pembayaran')->with('items')->first();
                                 $cartCount = $cartItems ? $cartItems->items->count() : 0;
                             @endphp
                             @if($cartCount > 0)
@@ -247,10 +251,10 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-yellow-600 font-display">{{ $summary['belum_bayar'] ?? 0 }}</div>
+                        <div class="text-3xl font-bold text-yellow-600 font-display">{{ $summary['menunggu_pembayaran'] ?? 0 }}</div>
                     </div>
                 </div>
-                <div class="font-semibold text-gray-800 mb-1">Belum Bayar</div>
+                <div class="font-semibold text-gray-800 mb-1">Menunggu Pembayaran</div>
                 <div class="text-xs text-gray-600">Selesaikan pembayaran</div>
             </div>
 
@@ -309,7 +313,7 @@
                     Semua ({{ $summary['total'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
-                    Belum Bayar ({{ $summary['belum_bayar'] ?? 0 }})
+                    Menunggu Pembayaran ({{ $summary['menunggu_pembayaran'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
                     Dikemas ({{ $summary['dikemas'] ?? 0 }})
@@ -389,24 +393,28 @@
                                 <div class="font-bold text-lg text-gray-900">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                             </td>
                             <td class="px-6 py-5">
-                                @if($order->payment_status === 'menunggu_pembayaran')
+                                @if(
+                                    $order->payment_status === 'menunggu_pembayaran' &&
+                                    $order->status !== 'dibatalkan'
+                                )
                                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300">
                                     <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                                     </svg>
                                     Menunggu Pembayaran
                                 </span>
+                                @elseif($order->payment_status === 'dibatalkan')
+                                <span class="inline-flex ... bg-red-100 text-red-700">
+                                    Pembayaran Dibatalkan
+                                </span>
                                 @else
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
+                                <span class="inline-flex ... bg-green-100">
                                     Sudah Dibayar
                                 </span>
                                 @endif
                             </td>
                             <td class="px-6 py-5">
-                                @if($order->status === 'belum_dibayar')
+                                @if($order->status === 'menunggu_pembayaran')
                                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
                                     Menunggu Pembayaran
                                 </span>
@@ -415,14 +423,19 @@
                                     Sedang Dikemas
                                 </span>
                                 @elseif($order->status === 'dikirim')
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-purple-100 text-purple-700">
+                                <span class="inline-flex ... bg-purple-100 text-purple-700">
                                     Dalam Pengiriman
                                 </span>
+                                @elseif($order->status === 'dibatalkan')
+                                <span class="inline-flex ... bg-red-100 text-red-700 border border-red-300">
+                                    Dibatalkan
+                                </span>
                                 @else
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+                                <span class="inline-flex ... bg-green-100 text-green-700">
                                     Pesanan Selesai
                                 </span>
                                 @endif
+
                             </td>
                             <td class="px-6 py-5">
                                 <a href="{{ route('dropshipper.order.show', $order->id) }}" class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
@@ -461,13 +474,12 @@
                 
                 // Status badge colors
                 $statusColors = [
-                    'belum_dibayar' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'icon' => 'from-yellow-100 to-orange-100', 'iconColor' => 'text-orange-600'],
                     'menunggu_pembayaran' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'icon' => 'from-yellow-100 to-orange-100', 'iconColor' => 'text-orange-600'],
                     'dikemas' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'icon' => 'from-blue-100 to-cyan-100', 'iconColor' => 'text-blue-600'],
                     'dikirim' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'icon' => 'from-purple-100 to-pink-100', 'iconColor' => 'text-purple-600'],
                     'selesai' => ['bg' => 'bg-green-100', 'text' => 'text-green-700', 'icon' => 'from-green-100 to-emerald-100', 'iconColor' => 'text-green-600'],
                 ];
-                $statusInfo = $statusColors[$order->status] ?? $statusColors['belum_dibayar'];
+                $statusInfo = $statusColors[$order->status] ?? $statusColors['menunggu_pembayaran'];
                 $statusLabel = ucfirst(str_replace('_', ' ', $order->status));
             @endphp
             <div class="order-card bg-white rounded-xl shadow-sm p-4 animate-slide-up">
@@ -510,10 +522,15 @@
                     <div class="font-bold text-lg text-gray-900">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                 </div>
                 <div class="flex gap-2">
-                    @if($order->payment_status === 'menunggu_pembayaran')
-                    <a href="{{ route('dropshipper.order.show', $order->id) }}" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm text-center">
+                    @if(
+                        $order->payment_status === 'menunggu_pembayaran' &&
+                        $order->status !== 'dibatalkan'
+                    )
+                    <button
+                        onclick="payOrder('{{ $order->snap_token }}')"
+                        class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm text-center">
                         Bayar Sekarang
-                    </a>
+                    </button>
                     @elseif($order->status === 'dikemas')
                     <button class="flex-1 px-4 py-2.5 bg-white border-2 border-primary text-primary rounded-lg font-semibold text-sm">
                         Hubungi Penjual
@@ -613,7 +630,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
                 @php
-                    $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                    $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'menunggu_pembayaran')->with('items')->first();
                     $cartCount = $cartItems ? $cartItems->items->count() : 0;
                 @endphp
                 @if($cartCount > 0)
@@ -624,5 +641,33 @@
         </div>
     </div>
 </body>
+<script>
+    function payOrder(snapToken) {
+        if (!snapToken) {
+            alert('Snap token tidak ditemukan');
+            return;
+        }
+
+        window.snap.pay(snapToken, {
+            onSuccess: function (result) {
+                console.log('SUCCESS', result);
+                window.location.reload();
+            },
+            onPending: function (result) {
+                console.log('PENDING', result);
+                window.location.reload();
+            },
+            onError: function (result) {
+                console.error('ERROR', result);
+                alert('Pembayaran gagal');
+            },
+            onClose: function () {
+                console.log('Popup ditutup');
+            }
+        });
+    }
+</script>
+
+
 </html>
 </html>

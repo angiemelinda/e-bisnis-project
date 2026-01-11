@@ -22,13 +22,16 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::with(['items.product'])
-            ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id())
+            ->where('status', '!=', 'dibatalkan');
+
+        
 
         // Filter by status if provided
         if ($request->has('status') && $request->status !== 'all') {
-            if ($request->status === 'belum_bayar') {
+            if ($request->status === 'menunggu_pembayaran') {
                 $query->where(function($q) {
-                    $q->where('status', 'belum_dibayar')
+                    $q->where('status', 'menunggu_pembayaran')
                       ->orWhere('payment_status', 'menunggu_pembayaran');
                 });
             } else {
@@ -40,7 +43,7 @@ class OrderController extends Controller
 
         // Get counts for summary cards
         $counts = [
-            'belum_bayar' => Order::where('user_id', auth()->id())
+            'menunggu_pembayaran' => Order::where('user_id', auth()->id())
                 ->where('payment_status', 'menunggu_pembayaran')
                 ->count(),
             'dikemas' => Order::where('user_id', auth()->id())
@@ -52,6 +55,9 @@ class OrderController extends Controller
             'selesai' => Order::where('user_id', auth()->id())
                 ->where('status', 'selesai')
                 ->count(),
+            'dibatalkan' => Order::where('user_id', auth()->id())
+                ->where('status', 'dibatalkan')
+                ->count(),
         ];
 
         $counts['all'] = array_sum($counts);
@@ -60,7 +66,7 @@ class OrderController extends Controller
          */
         $cart = Order::with('items')
             ->where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
+            ->where('status', 'menunggu_pembayaran')
             ->first();
         
         $cartCount = $cart ? $cart->items->sum('quantity') : 0;
@@ -69,6 +75,7 @@ class OrderController extends Controller
          * Ambil user data untuk display initials
          */
         $user = Auth::user();
+        
 
         return view('dropshipper.orders', compact('orders', 'counts', 'cartCount', 'user'));
     }
@@ -99,7 +106,7 @@ class OrderController extends Controller
         $order = Order::firstOrCreate(
             [
                 'user_id' => auth()->id(),
-                'status' => 'belum_dibayar',
+                'status' => 'menunggu_pembayaran',
             ],
             [
                 'order_code' => 'GH-' . now()->format('YmdHis'),
@@ -142,9 +149,7 @@ class OrderController extends Controller
         $order->update([
             'discount_amount' => $discountAmount,
             'total' => $total,
-            'snap_token' => null, // reset snap token karena total berubah
         ]);
-
         // Return JSON response if AJAX request
         if ($request->expectsJson() || $request->wantsJson()) {
             return response()->json([
@@ -165,7 +170,7 @@ class OrderController extends Controller
     {
         $cart = Order::with('items.product')
             ->where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
+            ->where('status', 'menunggu_pembayaran')
             ->first();
 
         /**
@@ -193,7 +198,7 @@ class OrderController extends Controller
 
         $cart = Order::with('items.product')
             ->where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
+            ->where('status', 'menunggu_pembayaran')
             ->firstOrFail();
 
         $discountPercent = $request->input('discount', 0);
@@ -235,160 +240,125 @@ class OrderController extends Controller
     // CHECKOUT → MIDTRANS SNAP
     // =====================
     public function checkout(Request $request)
-    {
-        $request->validate([
-            'item_ids' => 'required|array',
-            'item_ids.*' => 'required|integer|exists:order_items,id',
+{
+    $request->validate([
+        'item_ids' => 'required|array',
+        'item_ids.*' => 'required|integer|exists:order_items,id',
+    ]);
+
+    $cart = Order::with('items.product')
+        ->where('user_id', auth()->id())
+        ->where('status', 'menunggu_pembayaran')
+        ->firstOrFail();
+
+    $selectedItemIds = $request->input('item_ids', []);
+    $selectedItems = $cart->items()->whereIn('id', $selectedItemIds)->get();
+
+    if ($selectedItems->isEmpty()) {
+        return response()->json(['status' => 'error', 'message' => 'Pilih minimal satu produk'], 400);
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $subtotal = $selectedItems->sum('subtotal');
+        $discount = $request->input('discount', $cart->discount ?? 0);
+        $discountAmount = ($discount > 0 && $discount <= 100) ? ($subtotal * $discount) / 100 : 0;
+        $total = $subtotal - $discountAmount;
+
+        if ($total <= 0) throw new \Exception('Total tidak valid');
+
+        // Buat order baru
+        $newOrder = Order::create([
+            'user_id' => auth()->id(),
+            'order_code' => 'GH-' . now()->format('YmdHis') . '-' . rand(1000,9999),
+            'total' => $total,
+            'discount' => $discount,
+            'discount_amount' => $discountAmount,
+            'status' => 'menunggu_pembayaran',
+            'payment_status' => 'menunggu_pembayaran',
         ]);
 
-        $cart = Order::with('items.product')
-            ->where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
-            ->firstOrFail();
+        // Pindahkan item ke order baru
+        OrderItem::whereIn('id', $selectedItemIds)
+            ->update(['order_id' => $newOrder->id]);
 
-        $selectedItemIds = $request->input('item_ids', []);
-        
-        // Ambil item yang dicentang dari cart
-        $selectedItems = $cart->items()->whereIn('id', $selectedItemIds)->get();
+        // Buat payment record dulu
+        $attempt = Payment::where('order_id', $newOrder->id)->count() + 1;
+        $midtransOrderId = $newOrder->order_code . '-ATTEMPT-' . $attempt . '-' . time();
 
-        if ($selectedItems->isEmpty()) {
-            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Pilih minimal satu produk untuk checkout'
-                ], 400);
-            }
-            return back()->with('error', 'Pilih minimal satu produk untuk checkout');
-        }
+        $payment = Payment::create([
+            'order_id' => $newOrder->id,
+            'midtrans_order_id' => $midtransOrderId,
+            'status' => 'menunggu_pembayaran',
+        ]);
 
-        try {
-            $result = DB::transaction(function () use ($cart, $selectedItems, $request) {
-                // Hitung subtotal dari item yang dipilih
-                $subtotal = $selectedItems->sum('subtotal');
-                $discount = $request->input('discount', $cart->discount ?? 0);
-                $discountAmount = 0;
-                $total = $subtotal;
-                
-                if ($discount > 0 && $discount <= 100) {
-                    $discountAmount = ($subtotal * $discount) / 100;
-                    $total = $subtotal - $discountAmount;
-                }
+        // Konfigurasi Midtrans
+        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
 
-                if ($total <= 0) {
-                    throw new \Exception('Total tidak valid');
-                }
+        $user = auth()->user();
+        $name = explode(' ', $user->name, 2);
 
-                // Buat order baru untuk item yang dicentang
-                $newOrder = Order::create([
-                    'user_id' => auth()->id(),
-                    'order_code' => 'GH-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
-                    'total' => $total,
-                    'discount' => $discount,
-                    'discount_amount' => $discountAmount,
-                    'status' => 'belum_dibayar',
-                    'payment_status' => 'menunggu_pembayaran',
-                    'margin' => 0,
-                ]);
+        $params = [
+            'transaction_details' => [
+                'order_id' => $midtransOrderId,
+                'gross_amount' => (int) $total,
+            ],
+            'customer_details' => [
+                'first_name' => $name[0],
+                'last_name' => $name[1] ?? '',
+                'email' => $user->email,
+                'phone' => $user->phone ?? '',
+            ],
+        ];
 
-                // Pindahkan item yang dicentang ke order baru
-                $selectedItemIds = $selectedItems->pluck('id')->toArray();
-                OrderItem::whereIn('id', $selectedItemIds)
-                    ->update(['order_id' => $newOrder->id]);
+        $attempt = Payment::where('order_id', $newOrder->id)->count() + 1;
 
-                /**
-                 * 🔑 BUAT TRANSAKSI PAYMENT BARU (ATTEMPT BARU)
-                 */
-                $attempt = Payment::where('order_id', $newOrder->id)->count() + 1;
+        $midtransOrderId = $newOrder->order_code . '-ATTEMPT-' . $attempt . '-' . time();
 
-                $midtransOrderId = $newOrder->order_code . '-ATTEMPT-' . $attempt . '-' . time();
+        $payment = Payment::create([
+            'order_id' => $newOrder->id,
+            'midtrans_order_id' => $midtransOrderId,
+            'status' => 'menunggu_pembayaran',
+            'amount' => $total,
+            'attempt' => $attempt,
+        ]);
 
-                $payment = Payment::create([
-                    'order_id' => $newOrder->id,
-                    'midtrans_order_id' => $midtransOrderId,
-                    'status' => 'menunggu_pembayaran',
-                ]);
+        $snap = \Midtrans\Snap::createTransaction($params);
+        $snapToken = $snap->token;
 
-                // Set your Merchant Server Key
-                \Midtrans\Config::$serverKey = config('midtrans.server_key');
-                // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-                \Midtrans\Config::$isProduction = config('midtrans.is_production');
-                // Set sanitization on (default)
-                \Midtrans\Config::$isSanitized = config('midtrans.is_sanitized', true);
-                // Set 3DS transaction for credit card to true
-                \Midtrans\Config::$is3ds = config('midtrans.is_3ds', true);
+        // SIMPAN TOKEN KE PAYMENT (INI INTINYA)
+        $payment->update([
+            'snap_token' => $snapToken,
+        ]);
 
-                $user = auth()->user();
-                $name = explode(' ', $user->name, 2);
+        // opsional: simpan token terakhir ke order
+        $newOrder->update([
+            'snap_token' => $snapToken,
+            'payment_status' => 'menunggu_pembayaran',
+        ]);
 
-                $params = [
-                    'transaction_details' => [
-                        'order_id' => $midtransOrderId,
-                        'gross_amount' => (int) $total,
-                    ],
-                    'customer_details' => [
-                        'first_name' => $name[0],
-                        'last_name' => $name[1] ?? '',
-                        'email' => $user->email,
-                        'phone' => $user->phone ?? '',
-                    ],
-                ];
 
-                $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-                $payment->update([
-                    'snap_token' => $snapToken,
-                ]);
+        DB::commit();
 
-                // Update total cart yang tersisa (jika masih ada item)
-                $cart->refresh();
-                if ($cart->items->count() > 0) {
-                    $remainingSubtotal = $cart->items->sum('subtotal');
-                    $cartDiscount = $cart->discount ?? 0;
-                    $cartDiscountAmount = 0;
-                    $cartTotal = $remainingSubtotal;
-                    
-                    if ($cartDiscount > 0 && $cartDiscount <= 100) {
-                        $cartDiscountAmount = ($remainingSubtotal * $cartDiscount) / 100;
-                        $cartTotal = $remainingSubtotal - $cartDiscountAmount;
-                    }
-                    
-                    $cart->update([
-                        'total' => $cartTotal,
-                        'discount_amount' => $cartDiscountAmount,
-                    ]);
-                }
+        return response()->json([
+            'status' => 'success',
+            'snap_token' => $snapToken,
+            'order_code' => $newOrder->order_code,
+        ]);
 
-                return [
-                    'snap_token' => $snapToken,
-                    'order' => $newOrder,
-                ];
-            });
-        } catch (\Exception $e) {
-            \Log::error('Checkout error: ' . $e->getMessage());
-            
-            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Checkout gagal: ' . $e->getMessage()
-                ], 500);
-            }
-            
-            return back()->with('error', 'Checkout gagal');
-        }
-
-        // Jika request adalah AJAX/JSON, kembalikan JSON response
-        if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'snap_token' => $result['snap_token'],
-                'order_code' => $result['order']->order_code,
-            ]);
-        }
-
-        // Untuk backward compatibility, jika bukan AJAX request
-        return redirect()->route('dropshipper.orders')
-            ->with('success', 'Checkout berhasil. Silakan selesaikan pembayaran.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Checkout error: ' . $e->getMessage());
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
+}
+
+
 
 
     // =====================
@@ -409,9 +379,12 @@ class OrderController extends Controller
     // =====================
     public function orderHistory(Request $request)
     {
-        $query = Order::with(['items.product', 'payment', 'transactions'])
+        $orders = Order::with(['items.product.primaryImage'])
             ->where('user_id', auth()->id())
-            ->where('status', 'selesai');
+            ->whereIn('status', ['selesai', 'dibatalkan'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
 
         // Filter by date range if provided
         if ($request->has('period')) {
@@ -463,7 +436,7 @@ class OrderController extends Controller
          */
         $cart = Order::with('items')
             ->where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
+            ->where('status', 'menunggu_pembayaran')
             ->first();
         
         $cartCount = $cart ? $cart->items->sum('quantity') : 0;
@@ -487,7 +460,7 @@ class OrderController extends Controller
 
         $item = OrderItem::whereHas('order', function ($q) {
             $q->where('user_id', auth()->id())
-              ->where('status', 'belum_dibayar');
+              ->where('status', 'menunggu_pembayaran');
         })->findOrFail($itemId);
 
         $item->quantity = $request->quantity;
@@ -507,11 +480,15 @@ class OrderController extends Controller
             $total = $subtotal - $discountAmount;
         }
         
+        if ($order->snap_token && $order->total != $total) {
+            $order->snap_token = null;
+        }
+
         $order->update([
             'discount_amount' => $discountAmount,
             'total' => $total,
-            'snap_token' => null, // reset snap token karena total berubah
         ]);
+
 
         return response()->json([
             'status' => 'success',
@@ -537,7 +514,7 @@ class OrderController extends Controller
     {
         $item = OrderItem::whereHas('order', function ($q) {
             $q->where('user_id', auth()->id())
-              ->where('status', 'belum_dibayar');
+              ->where('status', 'menunggu_pembayaran');
         })->findOrFail($itemId);
 
         $order = $item->order;
@@ -579,7 +556,7 @@ class OrderController extends Controller
     public function clearCart()
     {
         $cart = Order::where('user_id', auth()->id())
-            ->where('status', 'belum_dibayar')
+            ->where('status', 'menunggu_pembayaran')
             ->first();
 
         if (!$cart) {
