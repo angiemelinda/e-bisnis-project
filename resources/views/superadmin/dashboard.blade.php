@@ -174,21 +174,25 @@
 <script>
     // Transaction Trend Chart
     const ctx1 = document.getElementById('transactionChart').getContext('2d');
+    const trendData = {!! json_encode($trendData) !!};
+    const maxValue = Math.max(...trendData, 1);
+    
     new Chart(ctx1, {
         type: 'line',
         data: {
             labels: {!! json_encode($trendLabels) !!},
             datasets: [{
                 label: 'Transaksi (Juta Rp)',
-                data: {!! json_encode($trendData) !!},
+                data: trendData,
                 borderColor: '#F97316',
                 backgroundColor: 'rgba(249, 115, 22, 0.1)',
                 tension: 0.4,
                 fill: true,
-                pointRadius: 4,
+                pointRadius: 5,
                 pointBackgroundColor: '#F97316',
                 pointBorderColor: '#fff',
-                pointBorderWidth: 2
+                pointBorderWidth: 2,
+                pointHoverRadius: 7
             }]
         },
         options: {
@@ -197,17 +201,29 @@
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    callbacks: {
+                        label: function(context) {
+                            return 'Rp ' + context.parsed.y.toFixed(2) + 'M';
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
+                    max: maxValue * 1.2,
                     grid: {
                         color: 'rgba(0, 0, 0, 0.05)'
                     },
                     ticks: {
                         callback: function(value) {
-                            return 'Rp ' + value + 'M';
+                            return 'Rp ' + value.toFixed(1) + 'M';
                         }
                     }
                 },
@@ -222,14 +238,21 @@
 
     // Payment Status Donut Chart
     const ctx2 = document.getElementById('paymentChart').getContext('2d');
+    const paymentDistribution = {!! json_encode($paymentDistribution) !!};
+    
     new Chart(ctx2, {
         type: 'doughnut',
         data: {
             labels: ['Lunas', 'Pending', 'Gagal'],
             datasets: [{
-                data: [{{ number_format($paymentDistribution['paid'], 1) }}, {{ number_format($paymentDistribution['pending'], 1) }}, {{ number_format($paymentDistribution['failed'], 1) }}],
+                data: [
+                    parseFloat(paymentDistribution.paid).toFixed(1),
+                    parseFloat(paymentDistribution.pending).toFixed(1),
+                    parseFloat(paymentDistribution.failed).toFixed(1)
+                ],
                 backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
-                borderWidth: 0
+                borderWidth: 0,
+                borderRadius: 4
             }]
         },
         options: {
@@ -239,6 +262,17 @@
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + '%';
+                        }
+                    }
                 }
             }
         }

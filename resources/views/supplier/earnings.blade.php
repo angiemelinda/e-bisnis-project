@@ -46,15 +46,9 @@
 
     <!-- Monthly Earnings Chart -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pendapatan Bulanan</h3>
-        <div class="h-64 flex items-end justify-between gap-2">
-            @foreach($monthlyEarnings as $earning)
-            <div class="flex-1 flex flex-col items-center">
-                <div class="w-full bg-orange-500 rounded-t" style="height: {{ $earning['total'] > 0 ? ($earning['total'] / max(array_column($monthlyEarnings, 'total')) * 200) : 10 }}px;"></div>
-                <p class="text-xs text-gray-600 mt-2 text-center">{{ $earning['month'] }}</p>
-                <p class="text-xs font-semibold text-gray-800 mt-1">Rp {{ number_format($earning['total'], 0, ',', '.') }}</p>
-            </div>
-            @endforeach
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pendapatan Bulanan (6 Bulan Terakhir)</h3>
+        <div style="position: relative; height: 300px;">
+            <canvas id="earningsChart"></canvas>
         </div>
     </div>
 
@@ -100,4 +94,89 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Monthly Earnings Chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('earningsChart').getContext('2d');
+        const monthlyData = {!! json_encode($monthlyEarnings) !!};
+        
+        const labels = monthlyData.map(item => item.month);
+        const data = monthlyData.map(item => item.total);
+        const maxValue = Math.max(...data, 1);
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Pendapatan (Rupiah)',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(249, 115, 22, 0.7)',
+                        'rgba(249, 115, 22, 0.6)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(249, 115, 22, 0.7)',
+                        'rgba(249, 115, 22, 0.6)'
+                    ],
+                    borderColor: 'rgba(249, 115, 22, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.7,
+                    hoverBackgroundColor: 'rgba(249, 115, 22, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                return 'Rp ' + value.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: maxValue * 1.1,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return 'Rp ' + (value / 1000000).toFixed(0) + 'M';
+                                } else if (value >= 1000) {
+                                    return 'Rp ' + (value / 1000).toFixed(0) + 'K';
+                                }
+                                return 'Rp ' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+@endpush
+
+
 

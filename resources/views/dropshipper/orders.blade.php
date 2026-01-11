@@ -199,11 +199,17 @@
 
                     <!-- Icons -->
                     <div class="flex items-center space-x-4">
-                        <a href="#" class="text-gray-700 hover:text-primary relative">
+                        <a href="{{ route('dropshipper.cart') }}" class="text-gray-700 hover:text-primary relative">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+                            @php
+                                $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                                $cartCount = $cartItems ? $cartItems->items->count() : 0;
+                            @endphp
+                            @if($cartCount > 0)
+                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ $cartCount }}</span>
+                            @endif
                         </a>
                         <div class="relative group">
                             <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold cursor-pointer">
@@ -241,7 +247,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-yellow-600 font-display">2</div>
+                        <div class="text-3xl font-bold text-yellow-600 font-display">{{ $summary['belum_bayar'] ?? 0 }}</div>
                     </div>
                 </div>
                 <div class="font-semibold text-gray-800 mb-1">Belum Bayar</div>
@@ -257,7 +263,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-blue-600 font-display">5</div>
+                        <div class="text-3xl font-bold text-blue-600 font-display">{{ $summary['dikemas'] ?? 0 }}</div>
                     </div>
                 </div>
                 <div class="font-semibold text-gray-800 mb-1">Dikemas</div>
@@ -273,7 +279,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-purple-600 font-display">8</div>
+                        <div class="text-3xl font-bold text-purple-600 font-display">{{ $summary['dikirim'] ?? 0 }}</div>
                     </div>
                 </div>
                 <div class="font-semibold text-gray-800 mb-1">Dikirim</div>
@@ -288,7 +294,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-green-600 font-display">127</div>
+                        <div class="text-3xl font-bold text-green-600 font-display">{{ $summary['selesai'] ?? 0 }}</div>
                     </div>
                 </div>
                 <div class="font-semibold text-gray-800 mb-1">Selesai</div>
@@ -300,19 +306,19 @@
         <div class="bg-white rounded-xl shadow-sm p-1 mb-6 animate-fade-in">
             <div class="flex items-center overflow-x-auto custom-scrollbar">
                 <button class="tab-active flex-shrink-0 px-6 py-3 text-sm font-semibold text-primary rounded-lg">
-                    Semua (142)
+                    Semua ({{ $summary['total'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
-                    Belum Bayar (2)
+                    Belum Bayar ({{ $summary['belum_bayar'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
-                    Dikemas (5)
+                    Dikemas ({{ $summary['dikemas'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
-                    Dikirim (8)
+                    Dikirim ({{ $summary['dikirim'] ?? 0 }})
                 </button>
                 <button class="flex-shrink-0 px-6 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg">
-                    Selesai (127)
+                    Selesai ({{ $summary['selesai'] ?? 0 }})
                 </button>
             </div>
         </div>
@@ -344,11 +350,11 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <!-- Order Row 1 - Belum Bayar -->
+                        @forelse($orders as $order)
                         <tr class="order-row hover:bg-orange-50">
                             <td class="px-6 py-5">
                                 <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
+                                    <div class="shrink-0">
                                         <div class="w-12 h-12 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg flex items-center justify-center">
                                             <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
@@ -356,301 +362,89 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="font-semibold text-gray-900 mb-1">#ORD-2024-001</div>
-                                        <div class="text-sm text-gray-600">15 Des 2024, 14:30</div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <span class="inline-flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                                Jakarta Selatan
-                                            </span>
-                                        </div>
+                                        <div class="font-semibold text-gray-900 mb-1">#{{ $order->order_code }}</div>
+                                        <div class="text-sm text-gray-600">{{ $order->created_at->format('d M Y, H:i') }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-5">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-orange-100 to-pink-100 rounded-lg flex-shrink-0"></div>
+                                    @php
+                                        $firstProduct = $order->items->first();
+                                        $imageUrl = $firstProduct && $firstProduct->product && $firstProduct->product->primaryImage 
+                                            ? asset('storage/' . $firstProduct->product->primaryImage->path)
+                                            : 'https://via.placeholder.com/100x100?text=No+Image';
+                                    @endphp
+                                    <img src="{{ $imageUrl }}" alt="{{ $firstProduct->product->name ?? 'Produk' }}" class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
                                     <div>
-                                        <div class="font-medium text-gray-900 mb-1">Kaos Polos Premium</div>
-                                        <div class="text-sm text-gray-600">50 pcs × Rp 29.000</div>
-                                        <div class="text-xs text-gray-500 mt-1">+ 2 produk lainnya</div>
+                                        <div class="font-medium text-gray-900 mb-1">{{ $firstProduct->product->name ?? 'Produk' }}</div>
+                                        <div class="text-sm text-gray-600">{{ $firstProduct->quantity ?? 0 }} pcs × Rp {{ number_format($firstProduct->price ?? 0, 0, ',', '.') }}</div>
+                                        @if($order->items->count() > 1)
+                                        <div class="text-xs text-gray-500 mt-1">+ {{ $order->items->count() - 1 }} produk lainnya</div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-5">
-                                <div class="font-bold text-lg text-gray-900">Rp 1.850.000</div>
-                                <div class="text-xs text-gray-500">Termasuk ongkir</div>
+                                <div class="font-bold text-lg text-gray-900">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                             </td>
                             <td class="px-6 py-5">
+                                @if($order->payment_status === 'menunggu_pembayaran')
                                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300">
                                     <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                                     </svg>
                                     Menunggu Pembayaran
                                 </span>
-                                <div class="text-xs text-red-600 mt-2 font-medium">
-                                    Bayar sebelum 23:59 WIB
-                                </div>
+                                @else
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
+                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Sudah Dibayar
+                                </span>
+                                @endif
                             </td>
                             <td class="px-6 py-5">
+                                @if($order->status === 'belum_dibayar')
                                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                                    </svg>
                                     Menunggu Pembayaran
                                 </span>
-                            </td>
-                            <td class="px-6 py-5">
-                                <button class="w-full px-4 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark mb-2 flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                    </svg>
-                                    Bayar Sekarang
-                                </button>
-                                <button class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    Lihat Detail
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Order Row 2 - Dikemas -->
-                        <tr class="order-row hover:bg-orange-50">
-                            <td class="px-6 py-5">
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-900 mb-1">#ORD-2024-002</div>
-                                        <div class="text-sm text-gray-600">14 Des 2024, 10:15</div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <span class="inline-flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                                Bandung
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex-shrink-0"></div>
-                                    <div>
-                                        <div class="font-medium text-gray-900 mb-1">Totebag Canvas</div>
-                                        <div class="text-sm text-gray-600">100 pcs × Rp 21.000</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="font-bold text-lg text-gray-900">Rp 2.150.000</div>
-                                <div class="text-xs text-gray-500">Termasuk ongkir</div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    Sudah Dibayar
-                                </span>
-                                <div class="text-xs text-gray-600 mt-2">
-                                    Transfer Bank • BCA
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                    </svg>
+                                @elseif($order->status === 'dikemas')
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
                                     Sedang Dikemas
                                 </span>
-                                <div class="text-xs text-gray-600 mt-2">
-                                    Estimasi kirim: 16 Des
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <button class="w-full px-4 py-2.5 bg-white border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white mb-2">
-                                    Hubungi Penjual
-                                </button>
-                                <button class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    Lihat Detail
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Order Row 3 - Dikirim -->
-                        <tr class="order-row hover:bg-orange-50">
-                            <td class="px-6 py-5">
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center status-glow">
-                                            <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-900 mb-1">#ORD-2024-003</div>
-                                        <div class="text-sm text-gray-600">12 Des 2024, 16:45</div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <span class="inline-flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                                Surabaya
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex-shrink-0"></div>
-                                    <div>
-                                        <div class="font-medium text-gray-900 mb-1">Powerbank 10000mAh</div>
-                                        <div class="text-sm text-gray-600">30 pcs × Rp 60.000</div>
-                                        <div class="text-xs text-gray-500 mt-1">+ 1 produk lainnya</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="font-bold text-lg text-gray-900">Rp 2.450.000</div>
-                                <div class="text-xs text-gray-500">Termasuk ongkir</div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    Sudah Dibayar
-                                </span>
-                                <div class="text-xs text-gray-600 mt-2">
-                                    E-Wallet • GoPay
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-purple-100 text-purple-700 border border-purple-300 badge-pulse">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                    </svg>
+                                @elseif($order->status === 'dikirim')
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-purple-100 text-purple-700">
                                     Dalam Pengiriman
                                 </span>
-                                <div class="text-xs font-medium text-purple-700 mt-2">
-                                    JNE REG • JNEX0012345678
-                                </div>
-                                <div class="text-xs text-gray-600">
-                                    Estimasi tiba: 16 Des
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <button class="w-full px-4 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark mb-2 flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
-                                    Lacak Paket
-                                </button>
-                                <button class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    Lihat Detail
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Order Row 4 - Selesai -->
-                        <tr class="order-row hover:bg-orange-50">
-                            <td class="px-6 py-5">
-                                <div class="flex items-start space-x-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-900 mb-1">#ORD-2024-004</div>
-                                        <div class="text-sm text-gray-600">10 Des 2024, 09:20</div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <span class="inline-flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                                Semarang
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex-shrink-0"></div>
-                                    <div>
-                                        <div class="font-medium text-gray-900 mb-1">Serum Wajah Vitamin C</div>
-                                        <div class="text-sm text-gray-600">24 pcs × Rp 38.500</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="font-bold text-lg text-gray-900">Rp 974.000</div>
-                                <div class="text-xs text-gray-500">Termasuk ongkir</div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    Sudah Dibayar
-                                </span>
-                                <div class="text-xs text-gray-600 mt-2">
-                                    Transfer Bank • Mandiri
-                                </div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-300">
-                                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
+                                @else
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-700">
                                     Pesanan Selesai
                                 </span>
-                                <div class="text-xs text-gray-600 mt-2">
-                                    Diterima: 14 Des 2024
-                                </div>
+                                @endif
                             </td>
                             <td class="px-6 py-5">
-                                <button class="w-full px-4 py-2.5 bg-white border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white mb-2">
-                                    Beli Lagi
-                                </button>
-                                <button class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
+                                <a href="{{ route('dropshipper.order.show', $order->id) }}" class="w-full px-4 py-2 text-gray-600 hover:text-primary text-sm font-medium flex items-center justify-center">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                     </svg>
                                     Lihat Detail
-                                </button>
+                                </a>
                             </td>
                         </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                </svg>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Pesanan</h3>
+                                <p class="text-gray-600">Mulai berbelanja untuk membuat pesanan pertama Anda</p>
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -658,163 +452,139 @@
 
         <!-- Orders List - Mobile View -->
         <div class="md:hidden space-y-4">
-            <!-- Order Card 1 -->
+            @forelse($orders as $order)
+            @php
+                $firstProduct = $order->items->first();
+                $productImage = $firstProduct && $firstProduct->product && $firstProduct->product->primaryImage 
+                    ? asset('storage/' . $firstProduct->product->primaryImage->path)
+                    : 'https://via.placeholder.com/100x100?text=No+Image';
+                
+                // Status badge colors
+                $statusColors = [
+                    'belum_dibayar' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'icon' => 'from-yellow-100 to-orange-100', 'iconColor' => 'text-orange-600'],
+                    'menunggu_pembayaran' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'icon' => 'from-yellow-100 to-orange-100', 'iconColor' => 'text-orange-600'],
+                    'dikemas' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'icon' => 'from-blue-100 to-cyan-100', 'iconColor' => 'text-blue-600'],
+                    'dikirim' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'icon' => 'from-purple-100 to-pink-100', 'iconColor' => 'text-purple-600'],
+                    'selesai' => ['bg' => 'bg-green-100', 'text' => 'text-green-700', 'icon' => 'from-green-100 to-emerald-100', 'iconColor' => 'text-green-600'],
+                ];
+                $statusInfo = $statusColors[$order->status] ?? $statusColors['belum_dibayar'];
+                $statusLabel = ucfirst(str_replace('_', ' ', $order->status));
+            @endphp
             <div class="order-card bg-white rounded-xl shadow-sm p-4 animate-slide-up">
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex items-start space-x-3 flex-1">
-                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-12 h-12 bg-gradient-to-br {{ $statusInfo['icon'] }} rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 {{ $statusInfo['iconColor'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="font-bold text-gray-900">#ORD-2024-001</div>
-                            <div class="text-sm text-gray-600">15 Des 2024, 14:30</div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 mt-2">
-                                Belum Bayar
+                            <div class="font-bold text-gray-900">#{{ $order->order_code }}</div>
+                            <div class="text-sm text-gray-600">{{ $order->created_at->format('d M Y, H:i') }}</div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusInfo['bg'] }} {{ $statusInfo['text'] }} mt-2 {{ $order->status === 'dikirim' ? 'badge-pulse' : '' }}">
+                                {{ $statusLabel }}
                             </span>
                         </div>
                     </div>
                 </div>
+                
+                @if($order->resi)
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                    <div class="text-xs font-semibold text-purple-700 mb-1">{{ $order->courier ?? 'Kurir' }} • {{ $order->resi }}</div>
+                    <div class="text-xs text-purple-600">Estimasi tiba: {{ $order->updated_at->addDays(3)->format('d M Y') }}</div>
+                </div>
+                @endif
+                
                 <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-pink-100 rounded-lg flex-shrink-0"></div>
+                    <img src="{{ $productImage }}" alt="{{ $firstProduct->product->name ?? 'Produk' }}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
                     <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-900 truncate">Kaos Polos Premium</div>
-                        <div class="text-sm text-gray-600">50 pcs × Rp 29.000</div>
-                        <div class="text-xs text-gray-500">+ 2 produk lainnya</div>
+                        <div class="font-medium text-gray-900 truncate">{{ $firstProduct->product->name ?? 'Produk' }}</div>
+                        <div class="text-sm text-gray-600">{{ $firstProduct->quantity ?? 0 }} pcs × Rp {{ number_format($firstProduct->price ?? 0, 0, ',', '.') }}</div>
+                        @if($order->items->count() > 1)
+                        <div class="text-xs text-gray-500">+ {{ $order->items->count() - 1 }} produk lainnya</div>
+                        @endif
                     </div>
                 </div>
                 <div class="flex items-center justify-between mb-4">
                     <div class="text-sm text-gray-600">Total Pembayaran</div>
-                    <div class="font-bold text-lg text-gray-900">Rp 1.850.000</div>
+                    <div class="font-bold text-lg text-gray-900">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                 </div>
                 <div class="flex gap-2">
-                    <button class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm">
+                    @if($order->payment_status === 'menunggu_pembayaran')
+                    <a href="{{ route('dropshipper.order.show', $order->id) }}" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm text-center">
                         Bayar Sekarang
-                    </button>
-                    <button class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Order Card 2 -->
-            <div class="order-card bg-white rounded-xl shadow-sm p-4 animate-slide-up">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-start space-x-3 flex-1">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold text-gray-900">#ORD-2024-002</div>
-                            <div class="text-sm text-gray-600">14 Des 2024, 10:15</div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 mt-2">
-                                Dikemas
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex-shrink-0"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-900 truncate">Totebag Canvas</div>
-                        <div class="text-sm text-gray-600">100 pcs × Rp 21.000</div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="text-sm text-gray-600">Total Pembayaran</div>
-                    <div class="font-bold text-lg text-gray-900">Rp 2.150.000</div>
-                </div>
-                <div class="flex gap-2">
+                    </a>
+                    @elseif($order->status === 'dikemas')
                     <button class="flex-1 px-4 py-2.5 bg-white border-2 border-primary text-primary rounded-lg font-semibold text-sm">
                         Hubungi Penjual
                     </button>
-                    <button class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Order Card 3 -->
-            <div class="order-card bg-white rounded-xl shadow-sm p-4 animate-slide-up">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-start space-x-3 flex-1">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold text-gray-900">#ORD-2024-003</div>
-                            <div class="text-sm text-gray-600">12 Des 2024, 16:45</div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 mt-2 badge-pulse">
-                                Dikirim
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-                    <div class="text-xs font-semibold text-purple-700 mb-1">JNE REG • JNEX0012345678</div>
-                    <div class="text-xs text-purple-600">Estimasi tiba: 16 Des 2024</div>
-                </div>
-                <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex-shrink-0"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-900 truncate">Powerbank 10000mAh</div>
-                        <div class="text-sm text-gray-600">30 pcs × Rp 60.000</div>
-                        <div class="text-xs text-gray-500">+ 1 produk lainnya</div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="text-sm text-gray-600">Total Pembayaran</div>
-                    <div class="font-bold text-lg text-gray-900">Rp 2.450.000</div>
-                </div>
-                <div class="flex gap-2">
-                    <button class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm flex items-center justify-center">
+                    @elseif($order->status === 'dikirim' && $order->resi)
+                    <a href="{{ route('dropshipper.tracking') }}?resi={{ $order->resi }}" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm flex items-center justify-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                         Lacak Paket
-                    </button>
-                    <button class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                    </a>
+                    @endif
+                    <a href="{{ route('dropshipper.order.show', $order->id) }}" class="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                    </button>
+                    </a>
                 </div>
             </div>
+            @empty
+            <div class="bg-white rounded-xl shadow-sm p-8 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Pesanan</h3>
+                <p class="text-gray-600">Mulai berbelanja untuk membuat pesanan pertama Anda</p>
+            </div>
+            @endforelse
         </div>
 
         <!-- Pagination -->
+        @if($orders->hasPages())
         <div class="flex items-center justify-between py-6 mt-6 border-t border-gray-200">
             <div class="text-sm text-gray-600">
-                Menampilkan <span class="font-semibold">1-10</span> dari <span class="font-semibold">142</span> pesanan
+                Menampilkan <span class="font-semibold">{{ $orders->firstItem() ?? 0 }}-{{ $orders->lastItem() ?? 0 }}</span> dari <span class="font-semibold">{{ $orders->total() }}</span> pesanan
             </div>
             <div class="flex items-center space-x-2">
+                @if($orders->onFirstPage())
                 <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     Sebelumnya
                 </button>
-                <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold">1</button>
-                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">2</button>
-                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">3</button>
-                <span class="px-2 text-gray-500">...</span>
-                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">15</button>
-                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                @else
+                <a href="{{ $orders->previousPageUrl() }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Sebelumnya
+                </a>
+                @endif
+
+                @foreach($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                    @if($page == $orders->currentPage())
+                    <span class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold">{{ $page }}</span>
+                    @elseif($page == 1 || $page == $orders->lastPage() || ($page >= $orders->currentPage() - 2 && $page <= $orders->currentPage() + 2))
+                    <a href="{{ $url }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ $page }}</a>
+                    @elseif($page == $orders->currentPage() - 3 || $page == $orders->currentPage() + 3)
+                    <span class="px-2 text-gray-500">...</span>
+                    @endif
+                @endforeach
+
+                @if($orders->hasMorePages())
+                <a href="{{ $orders->nextPageUrl() }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Selanjutnya
+                </a>
+                @else
+                <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     Selanjutnya
                 </button>
+                @endif
             </div>
         </div>
+        @endif
     </main>
 
     <!-- Mobile Bottom Navigation -->
@@ -842,10 +612,17 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
-                <span class="absolute -top-1 right-3 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+                @php
+                    $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                    $cartCount = $cartItems ? $cartItems->items->count() : 0;
+                @endphp
+                @if($cartCount > 0)
+                <span class="absolute -top-1 right-3 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ $cartCount }}</span>
+                @endif
                 <span class="text-xs mt-1">Keranjang</span>
             </a>
         </div>
     </div>
 </body>
+</html>
 </html>

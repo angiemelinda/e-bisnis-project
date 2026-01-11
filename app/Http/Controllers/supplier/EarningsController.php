@@ -27,15 +27,16 @@ class EarningsController extends Controller
         $supplierProducts = Product::where('user_id', $supplierId)->pluck('id');
         
         $orderItems = OrderItem::whereIn('product_id', $supplierProducts)
-            ->with(['order' => function($query) {
-                $query->where('payment_status', 'sudah_dibayar');
-            }])
+            ->with(['order', 'product'])
             ->whereHas('order', function($query) {
                 $query->where('payment_status', 'sudah_dibayar');
             })
             ->get();
         
-        $totalFromOrders = $orderItems->sum('subtotal');
+        // Calculate total from order items (use subtotal if exists, otherwise calculate)
+        $totalFromOrders = $orderItems->sum(function($item) {
+            return $item->subtotal ?? ($item->price * $item->quantity);
+        });
         
         // Monthly earnings
         $monthlyEarnings = [];
@@ -49,12 +50,17 @@ class EarningsController extends Controller
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->sum('total_harga');
             
-            $ordersMonthly = OrderItem::whereIn('product_id', $supplierProducts)
+            $ordersMonthlyItems = OrderItem::whereIn('product_id', $supplierProducts)
+                ->with(['order', 'product'])
                 ->whereHas('order', function($query) use ($monthStart, $monthEnd) {
                     $query->where('payment_status', 'sudah_dibayar')
                           ->whereBetween('created_at', [$monthStart, $monthEnd]);
                 })
-                ->sum('subtotal');
+                ->get();
+            
+            $ordersMonthly = $ordersMonthlyItems->sum(function($item) {
+                return $item->subtotal ?? ($item->price * $item->quantity);
+            });
             
             $monthlyEarnings[] = [
                 'month' => $month->format('M Y'),
@@ -102,4 +108,6 @@ class EarningsController extends Controller
         ));
     }
 }
+
+
 

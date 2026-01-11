@@ -27,117 +27,83 @@
         </div>
 
         {{-- Kategori Produk --}}
+        @if(isset($categories) && $categories->count() > 0)
         <div class="mb-8">
             <h3 class="text-xl font-semibold mb-3">Kategori Produk</h3>
             <div class="flex flex-wrap gap-4">
-                @php
-                    $kategoris = [
-                        ['nama' => 'Fashion', 'icon' => '/images/fashion.png', 'warna' => 'bg-blue-200'],
-                        ['nama' => 'Elektronik', 'icon' => '/images/elektronik.png', 'warna' => 'bg-gray-200'],
-                        ['nama' => 'Kecantikan', 'icon' => '/images/kecantikan.png', 'warna' => 'bg-pink-200'],
-                        ['nama' => 'Makanan', 'icon' => '/images/makanan.png', 'warna' => 'bg-green-200'],
-                        ['nama' => 'Peralatan Rumah', 'icon' => '/images/peralatan.png', 'warna' => 'bg-yellow-200'],
-                        ['nama' => 'Mainan', 'icon' => '/images/mainan.png', 'warna' => 'bg-red-200'],
-                    ];
-                @endphp
-
-                @foreach($kategoris as $kategori)
-                <div class="shadow hover:shadow-md rounded-md px-4 py-4 cursor-pointer text-center w-32 {{ $kategori['warna'] }}">
-                    <div class="h-14 w-14 mx-auto mb-2 flex items-center justify-center rounded-full overflow-hidden bg-white">
-                        <img src="{{ asset($kategori['icon']) }}" alt="{{ $kategori['nama'] }}" class="h-full w-full object-cover">
+                @foreach($categories as $kategori)
+                <div class="shadow hover:shadow-md rounded-md px-4 py-4 cursor-pointer text-center w-32 bg-blue-100">
+                    <div class="h-14 w-14 mx-auto mb-2 flex items-center justify-center rounded-full overflow-hidden bg-white text-xl">
+                        📦
                     </div>
-                    <span class="text-gray-700 font-semibold">{{ $kategori['nama'] }}</span>
+                    <span class="text-gray-700 font-semibold text-sm">{{ $kategori->name }}</span>
                 </div>
                 @endforeach
             </div>
         </div>
+        @endif
 
-        {{-- Banner Promo Kecil --}}
-        <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-yellow-50 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                    <h4 class="font-semibold mb-1">Rekomendasi produk</h4>
-                    <p class="text-gray-600 text-sm">Kualitas Terjamin</p>
-                    <a href="#" class="mt-2 inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Lihat Produk</a>
-                </div>
-                <img src="/path/to/product1.png" class="h-16" alt="Produk 1">
-            </div>
-            <div class="bg-pink-50 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                    <h4 class="font-semibold mb-1">Produk Populer</h4>
-                    <p class="text-gray-600 text-sm">Paling Banyak Dibeli</p>
-                    <a href="#" class="mt-2 inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Lihat Produk</a>
-                </div>
-                <img src="/path/to/product2.png" class="h-16" alt="Produk 2">
-            </div>
-            <div class="bg-blue-50 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                    <h4 class="font-semibold mb-1">Produk Baru</h4>
-                    <p class="text-gray-600 text-sm">Update Setiap Hari</p>
-                    <a href="#" class="mt-2 inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Lihat Produk</a>
-                </div>
-                <img src="/path/to/product3.png" class="h-16" alt="Produk 3">
-            </div>
-        </div>
-
-        {{-- Produk Terlaris🔥 --}}
+        {{-- Produk Saya --}}
+        @if(isset($produks) && $produks->count() > 0)
         <div class="mb-8">
-            <h3 class="text-xl font-semibold mb-3">Produk Terlaris🔥 </h3>
+            <h3 class="text-xl font-semibold mb-3">Produk Saya</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @php
-                    $produks = [
-                        ['id'=>1,'nama'=>'Produk A','harga'=>15000,'stok'=>10,'diskon'=>10,'rating'=>4],
-                        ['id'=>2,'nama'=>'Produk B','harga'=>25000,'stok'=>0,'diskon'=>0,'rating'=>5],
-                        ['id'=>3,'nama'=>'Produk C','harga'=>5000,'stok'=>20,'diskon'=>5,'rating'=>3],
-                    ];
-                @endphp
                 @foreach($produks as $produk)
                 <div class="bg-white rounded-lg shadow hover:shadow-lg p-4 flex flex-col relative">
-                    {{-- Stempel Diskon --}}
-                    @if($produk['diskon'] > 0)
-                    <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">Diskon {{ $produk['diskon'] }}%</div>
-                    @endif
+                    {{-- Status Badge --}}
+                    <div class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded {{ $produk->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                        {{ $produk->status === 'active' ? 'Aktif' : 'Nonaktif' }}
+                    </div>
 
                     {{-- Gambar Produk --}}
-                    <div class="h-40 bg-gray-100 mb-4 rounded-lg flex items-center justify-center">
-                        <span class="text-gray-400">Gambar Produk</span>
-                    </div>
-                    
-                    <h4 class="font-semibold text-lg mb-1">{{ $produk['nama'] }}</h4>
-                    
-                    <div class="flex items-center mb-1">
-                        @for($i=1;$i<=5;$i++)
-                            @if($i <= $produk['rating'])
-                                <span class="text-yellow-400">★</span>
-                            @else
-                                <span class="text-gray-300">★</span>
-                            @endif
-                        @endfor
-                    </div>
-                    
-                    <p class="text-gray-600 mb-1">
-                        Rp {{ number_format($produk['harga'],0,',','.') }}
-                        @if($produk['diskon'] > 0)
-                            <span class="text-green-500 font-medium ml-2">Diskon {{ $produk['diskon'] }}%</span>
-                        @endif
-                    </p>
-                    
-                    <p class="mb-2">
-                        @if($produk['stok'] > 0)
-                            <span class="text-green-500 font-medium">Stok: {{ $produk['stok'] }}</span>
+                    <div class="h-40 bg-gray-100 mb-4 rounded-lg flex items-center justify-center overflow-hidden">
+                        @if($produk->primaryImage)
+                            <img src="{{ $produk->image_url }}" alt="{{ $produk->name }}" class="h-full w-full object-cover">
                         @else
-                            <span class="text-red-500 font-medium">Habis Stok</span>
+                            <span class="text-gray-400">📷 Belum ada gambar</span>
+                        @endif
+                    </div>
+                    
+                    <h4 class="font-semibold text-lg mb-1 line-clamp-2">{{ $produk->name }}</h4>
+                    
+                    {{-- Kategori --}}
+                    @if($produk->category)
+                    <p class="text-xs text-gray-500 mb-2">{{ $produk->category->name }}</p>
+                    @endif
+                    
+                    {{-- Harga --}}
+                    <p class="text-gray-600 mb-2 font-semibold">
+                        Rp {{ number_format($produk->price, 0, ',', '.') }}
+                    </p>
+                    
+                    {{-- Stok --}}
+                    <p class="mb-3">
+                        @if($produk->stock > 0)
+                            <span class="text-green-600 font-medium text-sm">📦 Stok: {{ $produk->stock }}</span>
+                        @else
+                            <span class="text-red-600 font-medium text-sm">❌ Stok Habis</span>
                         @endif
                     </p>
                     
-                    <div class="mt-auto flex gap-2">
-                        <a href="{{ route('supplier.produk.edit', $produk['id']) }}" class="flex-1 text-center bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
-                        <button onclick="if(confirm('Apakah Anda yakin ingin menghapus produk ini?')){ alert('Produk dihapus!'); }" class="flex-1 text-center bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Hapus</button>
+                    {{-- Action Buttons --}}
+                    <div class="flex gap-2 mt-auto text-xs">
+                        <a href="{{ route('supplier.produk.edit', $produk->id) }}" class="flex-1 text-center bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
+                        <form action="{{ route('supplier.produk.destroy', $produk->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus produk ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Hapus</button>
+                        </form>
                     </div>
                 </div>
                 @endforeach
             </div>
         </div>
+        @else
+        <div class="mb-8 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-4 rounded">
+            <p class="font-semibold">📭 Belum ada produk</p>
+            <p class="text-sm">Klik tombol "+ Tambah Produk" di atas untuk menambahkan produk baru.</p>
+        </div>
+        @endif
 
     </div>
 </div>
@@ -206,6 +172,20 @@
                 </select>
             </div>
 
+            <!-- Gambar Produk -->
+            <div>
+                <label class="block mb-1 font-medium text-gray-700">Gambar Produk</label>
+                <div class="relative">
+                    <input type="file" id="productImage" name="image" accept="image/*" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer">
+                    <small class="text-gray-500 block mt-1">Format: JPG, PNG, GIF (Max 5MB)</small>
+                </div>
+                <!-- Image Preview -->
+                <div id="imagePreview" class="mt-2 hidden">
+                    <p class="text-sm text-gray-600 mb-2">Preview Gambar:</p>
+                    <img id="previewImg" src="" alt="Preview" class="w-24 h-24 object-cover rounded border border-gray-300">
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex gap-3 pt-4 border-t">
                 <button type="button" onclick="closeAddProductModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
@@ -222,6 +202,48 @@
 
 <!-- JavaScript untuk Modal -->
 <script type="text/javascript">
+// Image preview handler
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('productImage');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            const previewDiv = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Format file harus JPG, PNG, GIF, atau WebP');
+                    this.value = '';
+                    previewDiv.classList.add('hidden');
+                    return;
+                }
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran file maksimal 5MB');
+                    this.value = '';
+                    previewDiv.classList.add('hidden');
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewDiv.classList.add('hidden');
+                previewImg.src = '';
+            }
+        });
+    }
+});
+
 function openAddProductModal() {
     console.log('Opening modal...');
     const modal = document.getElementById('addProductModal');
@@ -241,6 +263,7 @@ function closeAddProductModal() {
     document.getElementById('addProductForm').reset();
     document.getElementById('errorMessages').classList.add('hidden');
     document.getElementById('successMessage').classList.add('hidden');
+    document.getElementById('imagePreview').classList.add('hidden');
 }
 
 // Close modal ketika klik di luar modal

@@ -7,16 +7,57 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of users
+     * Display a listing of all users
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderByDesc('id')->paginate(10);
-        return view('superadmin.users', compact('users'));
+        $query = User::query();
+        
+        // Search by name or email
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter by role
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+        
+        $users = $query->orderByDesc('id')->paginate(10)->appends(request()->query());
+        return view('superadmin.users.index', compact('users'));
+    }
+    
+    /**
+     * Display a listing of suppliers
+     */
+    public function suppliers()
+    {
+        $suppliers = User::where('role', 'supplier')
+            ->orderByDesc('id')
+            ->paginate(10);
+            
+        return view('superadmin.users.suppliers', compact('suppliers'));
+    }
+    
+    /**
+     * Display a listing of dropshippers
+     */
+    public function dropshippers()
+    {
+        $dropshippers = User::where('role', 'dropshipper')
+            ->orderByDesc('id')
+            ->paginate(10);
+            
+        return view('superadmin.users.dropshippers', compact('dropshippers'));
     }
 
     /**
@@ -150,4 +191,6 @@ class UserController extends Controller
             ->with('success', 'Pengguna berhasil dihapus.');
     }
 }
+
+
 

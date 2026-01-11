@@ -219,7 +219,13 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+                            @php
+                                $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                                $cartCount = $cartItems ? $cartItems->items->count() : 0;
+                            @endphp
+                            @if($cartCount > 0)
+                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ $cartCount }}</span>
+                            @endif
                         </a>
                         <div class="relative group">
                             <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold cursor-pointer">
@@ -257,7 +263,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-900 font-display">127</div>
+                <div class="text-3xl font-bold text-gray-900 font-display">{{ $stats['total_orders'] ?? 0 }}</div>
                 <div class="text-xs text-gray-500 mt-1">Sejak bergabung</div>
             </div>
 
@@ -271,7 +277,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-2xl md:text-3xl font-bold text-gray-900 font-display">Rp 145.8jt</div>
+                <div class="text-2xl md:text-3xl font-bold text-gray-900 font-display">Rp {{ number_format($stats['total_spent'] ?? 0, 0, ',', '.') }}</div>
                 <div class="text-xs text-gray-500 mt-1">Semua transaksi</div>
             </div>
 
@@ -284,7 +290,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-900 font-display">8.542</div>
+                <div class="text-3xl font-bold text-gray-900 font-display">{{ number_format($stats['total_items'] ?? 0, 0, ',', '.') }}</div>
                 <div class="text-xs text-gray-500 mt-1">Total pcs/unit</div>
             </div>
 
@@ -297,8 +303,8 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-900 font-display">12</div>
-                <div class="text-xs text-gray-500 mt-1">Desember 2024</div>
+                <div class="text-3xl font-bold text-gray-900 font-display">{{ $stats['this_month'] ?? 0 }}</div>
+                <div class="text-xs text-gray-500 mt-1">{{ now()->format('F Y') }}</div>
             </div>
         </div>
 
@@ -353,15 +359,19 @@
 
         <!-- Order History Timeline -->
         <div class="space-y-6">
+            @forelse($orders->groupBy(function($order) {
+                return $order->created_at->format('F Y');
+            }) as $month => $monthOrders)
             <!-- Month Divider -->
             <div class="flex items-center gap-4 animate-fade-in">
                 <div class="date-badge px-4 py-2 rounded-full">
-                    <span class="text-sm font-semibold text-orange-800">Desember 2024</span>
+                    <span class="text-sm font-semibold text-orange-800">{{ $month }}</span>
                 </div>
                 <div class="flex-1 h-px bg-gradient-to-r from-orange-200 to-transparent"></div>
             </div>
 
-            <!-- Order History Card 1 -->
+            @foreach($monthOrders as $order)
+            <!-- Order History Card -->
             <div class="order-history-card bg-white rounded-xl shadow-sm overflow-hidden animate-slide-up">
                 <div class="p-6">
                     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
@@ -374,7 +384,7 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-3 mb-2">
-                                    <h3 class="text-lg font-bold text-gray-900 font-display">#ORD-2024-104</h3>
+                                    <h3 class="text-lg font-bold text-gray-900 font-display">#{{ $order->order_code }}</h3>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
                                         Selesai
                                     </span>
@@ -384,13 +394,7 @@
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
                                         </svg>
-                                        14 Des 2024
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Semarang
+                                        {{ $order->created_at->format('d M Y') }}
                                     </span>
                                 </div>
                             </div>
@@ -399,28 +403,36 @@
                         <!-- Order Total -->
                         <div class="text-right">
                             <div class="text-sm text-gray-600 mb-1">Total Pembayaran</div>
-                            <div class="text-2xl font-bold text-gray-900 font-display">Rp 974.000</div>
+                            <div class="text-2xl font-bold text-gray-900 font-display">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                         </div>
                     </div>
 
                     <!-- Products List -->
                     <div class="space-y-4 mb-6 pb-6 border-b border-gray-100">
+                        @foreach($order->items as $item)
+                        @php
+                            $product = $item->product;
+                            $imageUrl = $product && $product->primaryImage 
+                                ? asset('storage/' . $product->primaryImage->path)
+                                : 'https://via.placeholder.com/100x100?text=No+Image';
+                        @endphp
                         <div class="flex items-center gap-4">
                             <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg"></div>
+                                <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'Produk' }}" class="product-img w-full h-full object-cover rounded-lg">
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Serum Wajah Vitamin C + Hyaluronic Acid 30ml</h4>
+                                <h4 class="font-semibold text-gray-900 mb-1">{{ $product->name ?? 'Produk' }}</h4>
                                 <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>24 pcs</span>
+                                    <span>{{ $item->quantity }} pcs</span>
                                     <span class="text-gray-400">•</span>
-                                    <span>Rp 38.500/pcs</span>
+                                    <span>Rp {{ number_format($item->price, 0, ',', '.') }}/pcs</span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 924.000</div>
+                                <div class="font-bold text-gray-900">Rp {{ number_format($item->subtotal ?? ($item->quantity * $item->price), 0, ',', '.') }}</div>
                             </div>
                         </div>
+                        @endforeach
                     </div>
 
                     <!-- Order Details & Actions -->
@@ -431,149 +443,28 @@
                                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span class="text-gray-600">Transfer Bank • Mandiri</span>
+                                <span class="text-gray-600">{{ $order->payment_status === 'sudah_dibayar' ? 'Sudah Dibayar' : 'Menunggu Pembayaran' }}</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
                                     <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
                                 </svg>
-                                <span class="text-gray-600">Status: Dikirim</span>
+                                <span class="text-gray-600">Status: {{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
                             </div>
                         </div>
 
                         <div class="flex gap-2">
-                            <button class="flex-1 md:flex-initial px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                                </svg>
-                                Beli Lagi
-                            </button>
-                            <a href="{{ route('dropshipper.order.show', ['id' => '1']) }}" class="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary hover:text-primary flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                Detail
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order History Card 2 -->
-            <div class="order-history-card bg-white rounded-xl shadow-sm overflow-hidden animate-slide-up">
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-                        <!-- Order Info -->
-                        <div class="flex items-start gap-4">
-                            <div class="w-14 h-14 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-green-200">
-                                <svg class="w-7 h-7 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-3 mb-2">
-                                    <h3 class="text-lg font-bold text-gray-900 font-display">#ORD-2024-098</h3>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
-                                        Selesai
-                                    </span>
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-600">
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        10 Des 2024
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Surabaya
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order Total -->
-                        <div class="text-right">
-                            <div class="text-sm text-gray-600 mb-1">Total Pembayaran</div>
-                            <div class="text-2xl font-bold text-gray-900 font-display">Rp 2.450.000</div>
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
-                                        <circle cx="4" cy="4" r="3" />
+                            <form method="POST" action="{{ route('dropshipper.order.buy-again', $order->id) }}" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="flex-1 md:flex-initial px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                                     </svg>
-                                    Dikirim
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Products List -->
-                    <div class="space-y-4 mb-6 pb-6 border-b border-gray-100">
-                        <div class="flex items-center gap-4">
-                            <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Powerbank 10000mAh Fast Charging Type-C PD</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>30 pcs</span>
-                                    <span class="text-gray-400">•</span>
-                                    <span>Rp 60.000/pcs</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 1.800.000</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Kabel Charger USB Type-C Fast Charging 3A</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>50 pcs</span>
-                                    <span class="text-gray-400">•</span>
-                                    <span>Rp 12.000/pcs</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 600.000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Details & Actions -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex flex-wrap items-center gap-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
-                                </svg>
-                                <span class="text-gray-600">E-Wallet • GoPay</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                </svg>
-                                <span class="text-gray-600">Status: Dikirim</span>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button class="flex-1 md:flex-initial px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                                </svg>
-                                Beli Lagi
-                            </button>
-                            <a href="{{ route('dropshipper.order.show', ['id' => '1']) }}" class="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary hover:text-primary flex items-center justify-center gap-2">
+                                    Beli Lagi
+                                </button>
+                            </form>
+                            <a href="{{ route('dropshipper.order.show', $order->id) }}" class="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary hover:text-primary flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -584,257 +475,57 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Order History Card 3 -->
-            <div class="order-history-card bg-white rounded-xl shadow-sm overflow-hidden animate-slide-up">
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-                        <!-- Order Info -->
-                        <div class="flex items-start gap-4">
-                            <div class="w-14 h-14 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-green-200">
-                                <svg class="w-7 h-7 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-3 mb-2">
-                                    <h3 class="text-lg font-bold text-gray-900 font-display">#ORD-2024-092</h3>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
-                                        Selesai
-                                    </span>
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-600">
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        08 Des 2024
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Jakarta Selatan
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order Total -->
-                        <div class="text-right">
-                            <div class="text-sm text-gray-600 mb-1">Total Pembayaran</div>
-                            <div class="text-2xl font-bold text-gray-900 font-display">Rp 1.850.000</div>
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
-                                        <circle cx="4" cy="4" r="3" />
-                                    </svg>
-                                    Dikirim
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Products List -->
-                    <div class="space-y-4 mb-6 pb-6 border-b border-gray-100">
-                        <div class="flex items-center gap-4">
-                            <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-orange-100 to-pink-100 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Kaos Polos Premium Cotton Combed 30s Unisex</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>50 pcs</span>
-                                    <span class="text-gray-400">•</span>
-                                    <span>Rp 29.000/pcs</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 1.450.000</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-amber-100 to-yellow-100 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Topi Baseball Polos Premium Adjustable</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>20 pcs</span>
-                                    <span class="text-gray-400">•</span>
-                                    <span>Rp 18.000/pcs</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 360.000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Details & Actions -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex flex-wrap items-center gap-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
-                                </svg>
-                                <span class="text-gray-600">Transfer Bank • BCA</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                </svg>
-                                <span class="text-gray-600">Status: Dikirim</span>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button class="flex-1 md:flex-initial px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                                </svg>
-                                Beli Lagi
-                            </button>
-                            <a href="{{ route('dropshipper.order.show', ['id' => '1']) }}" class="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary hover:text-primary flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                Detail
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Month Divider -->
-            <div class="flex items-center gap-4 animate-fade-in">
-                <div class="date-badge px-4 py-2 rounded-full">
-                    <span class="text-sm font-semibold text-orange-800">November 2024</span>
-                </div>
-                <div class="flex-1 h-px bg-gradient-to-r from-orange-200 to-transparent"></div>
-            </div>
-
-            <!-- Order History Card 4 -->
-            <div class="order-history-card bg-white rounded-xl shadow-sm overflow-hidden animate-slide-up">
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-                        <!-- Order Info -->
-                        <div class="flex items-start gap-4">
-                            <div class="w-14 h-14 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 border-2 border-green-200">
-                                <svg class="w-7 h-7 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-3 mb-2">
-                                    <h3 class="text-lg font-bold text-gray-900 font-display">#ORD-2024-085</h3>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
-                                        Selesai
-                                    </span>
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-600">
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        28 Nov 2024
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        Bandung
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order Total -->
-                        <div class="text-right">
-                            <div class="text-sm text-gray-600 mb-1">Total Pembayaran</div>
-                            <div class="text-2xl font-bold text-gray-900 font-display">Rp 2.150.000</div>
-                            <div class="mt-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
-                                        <circle cx="4" cy="4" r="3" />
-                                    </svg>
-                                    Dikirim
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Products List -->
-                    <div class="space-y-4 mb-6 pb-6 border-b border-gray-100">
-                        <div class="flex items-center gap-4">
-                            <div class="product-img-container w-20 h-20 flex-shrink-0">
-                                <div class="product-img w-full h-full bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 mb-1">Totebag Canvas Premium Printing Custom Logo</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
-                                    <span>100 pcs</span>
-                                    <span class="text-gray-400">•</span>
-                                    <span>Rp 21.000/pcs</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-900">Rp 2.100.000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Details & Actions -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex flex-wrap items-center gap-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
-                                </svg>
-                                <span class="text-gray-600">Transfer Bank • BCA</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
-                                </svg>
-                                <span class="text-gray-600">Status: Dikirim</span>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button class="flex-1 md:flex-initial px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                                </svg>
-                                Beli Lagi
-                            </button>
-                            <a href="{{ route('dropshipper.order.show', ['id' => '1']) }}" class="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary hover:text-primary flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                Detail
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Load More Button -->
-        <div class="flex justify-center mt-8">
-            <button class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-semibold hover:border-primary hover:text-primary hover:bg-orange-50 transition flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            @endforeach
+            @empty
+            <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4 float-animation" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                Muat Lebih Banyak
-            </button>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Riwayat Pesanan</h3>
+                <p class="text-gray-600 mb-6">Pesanan yang sudah selesai akan muncul di sini</p>
+                <a href="{{ route('dropshipper.catalog') }}" class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition">
+                    Mulai Belanja
+                </a>
+            </div>
+            @endforelse
+
+            @if($orders->hasPages())
+            <!-- Pagination -->
+            <div class="flex justify-center mt-8">
+                <div class="flex items-center gap-2">
+                    @if($orders->onFirstPage())
+                    <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Sebelumnya
+                    </button>
+                    @else
+                    <a href="{{ $orders->previousPageUrl() }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Sebelumnya
+                    </a>
+                    @endif
+
+                    @foreach($orders->getUrlRange(1, min(5, $orders->lastPage())) as $page => $url)
+                        @if($page == $orders->currentPage())
+                        <span class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold">{{ $page }}</span>
+                        @else
+                        <a href="{{ $url }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ $page }}</a>
+                        @endif
+                    @endforeach
+
+                    @if($orders->hasMorePages())
+                    <a href="{{ $orders->nextPageUrl() }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Selanjutnya
+                    </a>
+                    @else
+                    <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Selanjutnya
+                    </button>
+                    @endif
+                </div>
+            </div>
+            @endif
         </div>
+
+        <!-- Load More Button (removed, using pagination instead) -->
     </main>
 
     <!-- Mobile Bottom Navigation -->

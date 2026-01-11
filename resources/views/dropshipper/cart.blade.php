@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Keranjang Belanja - GrosirHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
@@ -70,6 +72,17 @@
             to {
                 opacity: 1;
                 transform: scale(1);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
             }
         }
 
@@ -238,37 +251,42 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <!-- Logo -->
-                <div class="flex-shrink-0">
-                    <a href="index.html" class="text-2xl font-bold text-primary font-display">GrosirHub</a>
+                <div class="shrink-0">
+                    <a href="{{ route('dropshipper.dashboard') }}" class="text-2xl font-bold text-primary font-display">GrosirHub</a>
                 </div>
 
                 <!-- Navigation Menu -->
                 <div class="hidden md:flex items-center space-x-6">
-                    <a href="index.html" class="text-gray-700 hover:text-primary font-medium">Beranda</a>
-                    <a href="product-catalog.html" class="text-gray-700 hover:text-primary font-medium">Produk</a>
-                    <a href="orders.html" class="text-gray-700 hover:text-primary font-medium">Pesanan</a>
-                    <a href="order-history.html" class="text-gray-700 hover:text-primary font-medium">Riwayat</a>
+                    <a href="{{ route('dropshipper.dashboard') }}" class="text-gray-700 hover:text-primary font-medium">Beranda</a>
+                    <a href="{{ route('dropshipper.catalog') }}" class="text-gray-700 hover:text-primary font-medium">Produk</a>
+                    <a href="{{ route('dropshipper.orders') }}" class="text-gray-700 hover:text-primary font-medium">Pesanan</a>
+                    <a href="{{ route('dropshipper.history') }}" class="text-gray-700 hover:text-primary font-medium">Riwayat</a>
                 </div>
 
                 <!-- Right Section -->
                 <div class="flex items-center space-x-4">
                     <!-- Icons -->
                     <div class="flex items-center space-x-4">
-                        <a href="#" class="text-primary relative">
+                        <a href="{{ route('dropshipper.cart') }}" class="text-primary relative">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+                            @if($cart && $cart->items->count() > 0)
+                            <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ $cart->items->count() }}</span>
+                            @endif
                         </a>
                         <div class="relative group">
                             <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold cursor-pointer">
-                                JD
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </button>
                             <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 animate-slide-down">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profil Saya</a>
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Pengaturan Akun</a>
+                                <a href="{{ route('dropshipper.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profil Saya</a>
+                                <a href="{{ route('dropshipper.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Pengaturan Akun</a>
                                 <hr class="my-1">
-                                <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Keluar</a>
+                                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium">Keluar</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -284,9 +302,13 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-display">Keranjang Belanja</h1>
-                    <p class="text-gray-600">3 produk siap untuk checkout</p>
+                    @if($cart && $cart->items->count() > 0)
+                    <p class="text-gray-600">{{ $cart->items->count() }} produk siap untuk checkout</p>
+                    @else
+                    <p class="text-gray-600">Keranjang Anda kosong</p>
+                    @endif
                 </div>
-                <a href="product-catalog.html" class="hidden md:flex items-center gap-2 text-primary hover:text-primary-dark font-semibold">
+                <a href="{{ route('dropshipper.catalog') }}" class="hidden md:flex items-center gap-2 text-primary hover:text-primary-dark font-semibold">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -298,242 +320,119 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Cart Items Section -->
             <div class="lg:col-span-2 space-y-4">
+                @if($cart && $cart->items->count() > 0)
                 <!-- Select All Header -->
                 <div class="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between animate-slide-up">
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" class="cart-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
-                        <span class="font-semibold text-gray-900">Pilih Semua (3 produk)</span>
+                        <span class="font-semibold text-gray-900">Pilih Semua ({{ $cart->items->count() }} produk)</span>
                     </label>
-                    <button class="text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    <form method="POST" action="{{ route('dropshipper.cart.clear') }}" style="display: inline;">
+                        @csrf
+                        <button type="button" class="clear-cart-btn text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Hapus Dipilih
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Cart Items Loop -->
+                @foreach($cart->items as $item)
+                @php
+                    $product = $item->product;
+                    $imageUrl = $product->images->first() ? asset('storage/' . $product->images->first()->path) : asset('images/placeholder.png');
+                @endphp
+                <div class="cart-item bg-white rounded-xl shadow-sm p-4 md:p-6 animate-slide-up">
+                    <div class="flex gap-4">
+                        <!-- Checkbox -->
+                        <div class="shrink-0 pt-1">
+                            <input type="checkbox" class="cart-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
+                        </div>
+
+                        <!-- Product Image -->
+                        <div class="product-img-container w-24 h-24 md:w-32 md:h-32 shrink-0">
+                            @if($imageUrl !== asset('images/placeholder.png'))
+                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="w-full h-full object-cover rounded-xl">
+                            @else
+                            <div class="w-full h-full bg-linear-to-br from-orange-100 via-pink-100 to-purple-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-8 h-8 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-2 leading-tight">{{ $product->name }}</h3>
+                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Stok: {{ $product->stock }} pcs
+                                        </span>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ route('dropshipper.cart.remove', $item->id) }}" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" class="remove-item-btn remove-btn text-gray-400 hover:text-red-600 p-2" data-item-id="{{ $item->id }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Price and Quantity -->
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    <!-- Quantity Display -->
+                                    <div>
+                                        <div class="text-sm text-gray-600 mb-1">Jumlah</div>
+                                        <div class="text-sm font-semibold text-gray-900">{{ $item->quantity }} pcs</div>
+                                    </div>
+
+                                    <!-- Price per Unit -->
+                                    <div>
+                                        <div class="text-xs text-gray-500 mb-1">Harga/pcs</div>
+                                        <div class="text-sm font-semibold text-gray-700">Rp {{ number_format($item->price, 0, ',', '.') }}</div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Price -->
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-600 mb-1">Total Harga</div>
+                                    <div class="text-2xl font-bold text-primary font-display">Rp {{ number_format($item->quantity * $item->price, 0, ',', '.') }}</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+
+                @else
+                <!-- Empty Cart Message -->
+                <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Keranjang Anda Kosong</h3>
+                    <p class="text-gray-600 mb-6">Mulai belanja untuk menambahkan produk ke keranjang</p>
+                    <a href="{{ route('dropshipper.catalog') }}" class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        Hapus Dipilih
-                    </button>
+                        Lanjut Belanja
+                    </a>
                 </div>
-
-                <!-- Cart Item 1 -->
-                <div class="cart-item bg-white rounded-xl shadow-sm p-4 md:p-6 animate-slide-up">
-                    <div class="flex gap-4">
-                        <!-- Checkbox -->
-                        <div class="flex-shrink-0 pt-1">
-                            <input type="checkbox" class="cart-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
-                        </div>
-
-                        <!-- Product Image -->
-                        <div class="product-img-container w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
-                            <div class="product-img w-full h-full bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 rounded-xl"></div>
-                        </div>
-
-                        <!-- Product Details -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 text-lg mb-2 leading-tight">Kaos Polos Premium Cotton Combed 30s Unisex</h3>
-                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            Varian: Hitam, Size M
-                                        </span>
-                                    </div>
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                                        Min. order: 20 pcs
-                                    </div>
-                                </div>
-                                <button class="remove-btn text-gray-400 hover:text-red-600 p-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Price and Quantity -->
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div class="flex items-center gap-4">
-                                    <!-- Quantity Selector -->
-                                    <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                            </svg>
-                                        </button>
-                                        <input type="number" value="50" min="20" class="w-16 text-center py-2 font-semibold text-gray-900 focus:outline-none">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <!-- Price per Unit -->
-                                    <div>
-                                        <div class="text-xs text-gray-500 line-through">Rp 45.000</div>
-                                        <div class="text-sm font-semibold text-gray-700">Rp 29.000<span class="text-gray-500">/pcs</span></div>
-                                    </div>
-                                </div>
-
-                                <!-- Total Price -->
-                                <div class="text-right">
-                                    <div class="text-sm text-gray-600 mb-1">Total Harga</div>
-                                    <div class="text-2xl font-bold text-primary font-display">Rp 1.450.000</div>
-                                    <div class="text-xs text-green-600 font-medium mt-1">Hemat Rp 800.000</div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cart Item 2 -->
-                <div class="cart-item bg-white rounded-xl shadow-sm p-4 md:p-6 animate-slide-up">
-                    <div class="flex gap-4">
-                        <!-- Checkbox -->
-                        <div class="flex-shrink-0 pt-1">
-                            <input type="checkbox" class="cart-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
-                        </div>
-
-                        <!-- Product Image -->
-                        <div class="product-img-container w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
-                            <div class="product-img w-full h-full bg-gradient-to-br from-blue-100 via-cyan-100 to-teal-100 rounded-xl"></div>
-                        </div>
-
-                        <!-- Product Details -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 text-lg mb-2 leading-tight">Totebag Canvas Premium Printing Custom Logo</h3>
-                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            Warna: Natural
-                                        </span>
-                                    </div>
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                                        Min. order: 50 pcs
-                                    </div>
-                                </div>
-                                <button class="remove-btn text-gray-400 hover:text-red-600 p-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Price and Quantity -->
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div class="flex items-center gap-4">
-                                    <!-- Quantity Selector -->
-                                    <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                            </svg>
-                                        </button>
-                                        <input type="number" value="100" min="50" class="w-16 text-center py-2 font-semibold text-gray-900 focus:outline-none">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <!-- Price per Unit -->
-                                    <div>
-                                        <div class="text-xs text-gray-500 line-through">Rp 35.000</div>
-                                        <div class="text-sm font-semibold text-gray-700">Rp 21.000<span class="text-gray-500">/pcs</span></div>
-                                    </div>
-                                </div>
-
-                                <!-- Total Price -->
-                                <div class="text-right">
-                                    <div class="text-sm text-gray-600 mb-1">Total Harga</div>
-                                    <div class="text-2xl font-bold text-primary font-display">Rp 2.100.000</div>
-                                    <div class="text-xs text-green-600 font-medium mt-1">Hemat Rp 1.400.000</div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cart Item 3 -->
-                <div class="cart-item bg-white rounded-xl shadow-sm p-4 md:p-6 animate-slide-up">
-                    <div class="flex gap-4">
-                        <!-- Checkbox -->
-                        <div class="flex-shrink-0 pt-1">
-                            <input type="checkbox" class="cart-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
-                        </div>
-
-                        <!-- Product Image -->
-                        <div class="product-img-container w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
-                            <div class="product-img w-full h-full bg-gradient-to-br from-purple-100 via-pink-100 to-rose-100 rounded-xl"></div>
-                        </div>
-
-                        <!-- Product Details -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 text-lg mb-2 leading-tight">Powerbank 10000mAh Fast Charging Type-C PD</h3>
-                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-3">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            Warna: Putih
-                                        </span>
-                                    </div>
-                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                                        Min. order: 10 pcs
-                                    </div>
-                                </div>
-                                <button class="remove-btn text-gray-400 hover:text-red-600 p-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Price and Quantity -->
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div class="flex items-center gap-4">
-                                    <!-- Quantity Selector -->
-                                    <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                            </svg>
-                                        </button>
-                                        <input type="number" value="30" min="10" class="w-16 text-center py-2 font-semibold text-gray-900 focus:outline-none">
-                                        <button class="qty-btn px-3 py-2 bg-gray-50 hover:bg-primary hover:text-white font-bold text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <!-- Price per Unit -->
-                                    <div>
-                                        <div class="text-xs text-gray-500 line-through">Rp 80.000</div>
-                                        <div class="text-sm font-semibold text-gray-700">Rp 60.000<span class="text-gray-500">/pcs</span></div>
-                                    </div>
-                                </div>
-
-                                <!-- Total Price -->
-                                <div class="text-right">
-                                    <div class="text-sm text-gray-600 mb-1">Total Harga</div>
-                                    <div class="text-2xl font-bold text-primary font-display">Rp 1.800.000</div>
-                                    <div class="text-xs text-green-600 font-medium mt-1">Hemat Rp 600.000</div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
+                @endif
             </div>
 
             <!-- Order Summary Sidebar -->
@@ -568,18 +467,17 @@
                     <div class="bg-white rounded-xl shadow-sm p-6 animate-scale-in">
                         <h3 class="font-bold text-gray-900 mb-6 font-display text-lg">Ringkasan Belanja</h3>
                         
+                        @if($cart && $cart->items->count() > 0)
+                        @php
+                            $totalItems = $cart->items->count();
+                            $totalQuantity = $cart->items->sum('quantity');
+                            $totalPrice = $cart->items->sum(fn($item) => $item->quantity * $item->price);
+                        @endphp
+                        
                         <div class="space-y-4 mb-6">
                             <div class="flex items-center justify-between text-gray-700">
-                                <span>Total Harga (3 produk)</span>
-                                <span class="font-semibold">Rp 8.150.000</span>
-                            </div>
-                            <div class="flex items-center justify-between text-green-600">
-                                <span>Total Diskon</span>
-                                <span class="font-semibold">- Rp 2.800.000</span>
-                            </div>
-                            <div class="flex items-center justify-between text-gray-700">
-                                <span>Subtotal</span>
-                                <span class="font-semibold">Rp 5.350.000</span>
+                                <span>Total Harga ({{ $totalItems }} produk)</span>
+                                <span class="font-semibold">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex items-center justify-between text-gray-700">
                                 <div class="flex items-center gap-1">
@@ -596,18 +494,21 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-lg font-bold text-gray-900 font-display">Total Bayar</span>
                                 <div class="text-right">
-                                    <div class="text-3xl font-bold text-primary font-display">Rp 5.350.000</div>
-                                    <div class="text-xs text-gray-500 mt-1">180 pcs • 3 produk</div>
+                                    <div class="text-3xl font-bold text-primary font-display">Rp {{ number_format($totalPrice, 0, ',', '.') }}</div>
+                                    <div class="text-xs text-gray-500 mt-1">{{ $totalQuantity }} pcs • {{ $totalItems }} produk</div>
                                 </div>
                             </div>
                         </div>
 
-                        <button class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                            </svg>
-                            Lanjut ke Pembayaran
-                        </button>
+                        <form method="POST" action="{{ route('dropshipper.checkout') }}">
+                            @csrf
+                            <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                Lanjut ke Pembayaran
+                            </button>
+                        </form>
 
                         <div class="mt-4 flex items-center justify-center gap-3 text-sm text-gray-600">
                             <div class="flex items-center gap-1">
@@ -624,31 +525,11 @@
                                 Pengiriman Cepat
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Payment Methods -->
-                    <div class="bg-white rounded-xl shadow-sm p-6 animate-scale-in">
-                        <h4 class="font-semibold text-gray-900 mb-3">Metode Pembayaran Tersedia</h4>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">BCA</span>
-                            </div>
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">Mandiri</span>
-                            </div>
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">BNI</span>
-                            </div>
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">GoPay</span>
-                            </div>
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">OVO</span>
-                            </div>
-                            <div class="border-2 border-gray-200 rounded-lg p-2 flex items-center justify-center hover:border-primary cursor-pointer transition">
-                                <span class="text-xs font-semibold text-gray-700">DANA</span>
-                            </div>
+                        @else
+                        <div class="text-center py-6">
+                            <p class="text-gray-600">Belum ada produk di keranjang</p>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -656,18 +537,23 @@
     </main>
 
     <!-- Mobile Checkout Bar -->
+    @if($cart && $cart->items->count() > 0)
     <div class="mobile-checkout-bar md:hidden p-4">
         <div class="flex items-center justify-between mb-3">
             <div>
                 <div class="text-xs text-gray-600">Total</div>
-                <div class="text-2xl font-bold text-primary font-display">Rp 5.350.000</div>
+                <div class="text-2xl font-bold text-primary font-display">Rp {{ number_format($totalPrice, 0, ',', '.') }}</div>
             </div>
-            <button class="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition shadow-lg">
-                Checkout
-            </button>
+            <form method="POST" action="{{ route('dropshipper.checkout') }}" style="display: inline;">
+                @csrf
+                <button type="submit" class="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition shadow-lg">
+                    Checkout
+                </button>
+            </form>
         </div>
-        <div class="text-xs text-center text-gray-500">180 pcs • 3 produk dipilih</div>
+        <div class="text-xs text-center text-gray-500">{{ $totalQuantity }} pcs • {{ $totalItems }} produk dipilih</div>
     </div>
+    @endif
 
     <script>
         // Quantity adjustment functionality
@@ -718,6 +604,106 @@
                     selectAllCheckbox.checked = allChecked;
                 }
             });
+        });
+
+        // Function to show alert modal
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            alertDiv.innerHTML = `
+                <div class="fixed top-4 right-4 max-w-md ${bgColor} border px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up z-50">
+                    <i class="fas ${icon}"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // Remove individual item via AJAX
+        document.querySelectorAll('.remove-item-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                if (!confirm('Yakin hapus item ini?')) {
+                    return;
+                }
+                
+                const itemId = this.dataset.itemId;
+                const form = this.closest('form');
+                const cartItem = this.closest('.cart-item');
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.status === 'success') {
+                        cartItem.style.animation = 'slideOut 0.3s ease-out forwards';
+                        setTimeout(() => {
+                            cartItem.remove();
+                            showAlert('Item berhasil dihapus dari keranjang', 'success');
+                            
+                            // Reload cart if empty
+                            if (document.querySelectorAll('.cart-item').length === 0) {
+                                location.reload();
+                            }
+                        }, 300);
+                    } else {
+                        showAlert(data.message || 'Gagal menghapus item', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('Terjadi kesalahan saat menghapus item', 'error');
+                }
+            });
+        });
+
+        // Clear entire cart via AJAX
+        document.querySelector('.clear-cart-btn')?.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            if (!confirm('Yakin hapus semua item dari keranjang?')) {
+                return;
+            }
+            
+            const form = this.closest('form');
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    showAlert('Keranjang berhasil dikosongkan', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Gagal mengosongkan keranjang', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan saat mengosongkan keranjang', 'error');
+            }
         });
     </script>
 </body>

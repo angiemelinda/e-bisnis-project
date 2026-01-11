@@ -252,33 +252,42 @@
             <div class="flex justify-between h-16 items-center">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
-                    <a href="index.html" class="text-2xl font-bold text-primary font-display">GrosirHub</a>
+                    <a href="{{ route('dropshipper.dashboard') }}" class="text-2xl font-bold text-primary font-display">GrosirHub</a>
                 </div>
 
                 <!-- Navigation Menu -->
                 <div class="hidden md:flex items-center space-x-6">
-                    <a href="index.html" class="text-gray-700 hover:text-primary font-medium">Beranda</a>
-                    <a href="product-catalog.html" class="text-gray-700 hover:text-primary font-medium">Produk</a>
-                    <a href="orders.html" class="text-gray-700 hover:text-primary font-medium">Pesanan</a>
-                    <a href="order-history.html" class="text-gray-700 hover:text-primary font-medium">Riwayat</a>
+                    <a href="{{ route('dropshipper.dashboard') }}" class="text-gray-700 hover:text-primary font-medium">Beranda</a>
+                    <a href="{{ route('dropshipper.catalog') }}" class="text-gray-700 hover:text-primary font-medium">Produk</a>
+                    <a href="{{ route('dropshipper.orders') }}" class="text-gray-700 hover:text-primary font-medium">Pesanan</a>
+                    <a href="{{ route('dropshipper.order-history') }}" class="text-gray-700 hover:text-primary font-medium">Riwayat</a>
                 </div>
 
                 <!-- Right Section -->
                 <div class="flex items-center space-x-4">
-                    <a href="shopping-cart.html" class="text-gray-700 hover:text-primary relative">
+                    <a href="{{ route('dropshipper.cart') }}" class="text-gray-700 hover:text-primary relative">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                         </svg>
-                        <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+                        @php
+                            $cartItems = \App\Models\Order::where('user_id', auth()->id())->where('status', 'belum_dibayar')->with('items')->first();
+                            $cartCount = $cartItems ? $cartItems->items->count() : 0;
+                        @endphp
+                        @if($cartCount > 0)
+                        <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ $cartCount }}</span>
+                        @endif
                     </a>
                     <div class="relative group">
-                        <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold cursor-pointer">
-                            JD
-                        </button>
+                    <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold cursor-pointer">
+                        {{ strtoupper(substr($user->name, 0, 2)) }}
+                    </button>
                         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 animate-slide-down">
                             <a href="{{ route('dropshipper.profile') }}" class="block px-4 py-2 text-sm text-primary font-semibold bg-orange-50">Profil Saya</a>
                             <hr class="my-1">
-                            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Keluar</a>
+                            <form method="POST" action="{{ route('logout') }}" class="block">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Keluar</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -296,22 +305,16 @@
                     <div class="text-center mb-6 pb-6 border-b border-gray-100">
                         <div class="avatar-container relative inline-block mb-4">
                             <div class="w-24 h-24 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                                JD
-                            </div>
-                            <div class="avatar-upload-overlay absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
+                                {{ strtoupper(substr($user->name, 0, 2)) }}
                             </div>
                         </div>
-                        <h2 class="font-bold text-xl text-gray-900 mb-1 font-display">John Doe</h2>
-                        <p class="text-gray-600 text-sm mb-3">john.doe@email.com</p>
+                        <h2 class="font-bold text-xl text-gray-900 mb-1 font-display">{{ $user->name }}</h2>
+                        <p class="text-gray-600 text-sm mb-3">{{ $user->email }}</p>
                         <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border border-orange-200">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                             </svg>
-                            Verified Buyer
+                            Dropshipper
                         </div>
                     </div>
 
@@ -379,50 +382,90 @@
                 <div class="bg-white rounded-2xl shadow-sm p-8 mb-6 animate-slide-in-right profile-section">
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-2xl font-bold text-gray-900 font-display">Informasi Pribadi</h2>
-                        <button class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Simpan Perubahan
-                        </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
-                            <input type="text" value="John Doe" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Toko / Bisnis</label>
-                            <input type="text" value="JD Store" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <div class="relative">
-                                <input type="email" value="john.doe@email.com" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none pr-12">
-                                <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-600">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </span>
+                    @if(session('success'))
+                    <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                        {{ session('success') }}
+                    </div>
+                    @endif
+
+                    @if($errors->any())
+                    <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+                        <ul class="list-disc list-inside">
+                            @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('dropshipper.profile.update') }}" method="POST" id="profileForm">
+                        @csrf
+                        @method('PUT')
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
+                                <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                <div class="relative">
+                                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none pr-12">
+                                    @if($user->email_verified_at)
+                                    <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-600">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
+                                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+62 812-3456-7890" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
-                            <input type="tel" placeholder="+62 812-3456-7890" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
+
+                        <div class="mt-6 flex justify-end">
+                            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Simpan Perubahan
+                            </button>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Lahir</label>
-                            <input type="date" value="1990-05-15" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin</label>
-                            <select class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none cursor-pointer">
-                                <option>Laki-laki</option>
-                                <option>Perempuan</option>
-                                <option>Tidak ingin menyebutkan</option>
-                            </select>
-                        </div>
+                    </form>
+
+                    <!-- Change Password Section -->
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-900 font-display mb-4">Ganti Password</h3>
+                        <form action="{{ route('dropshipper.profile.password.update') }}" method="POST" id="passwordForm">
+                            @csrf
+                            @method('PUT')
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password Saat Ini</label>
+                                    <input type="password" name="current_password" required class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password Baru</label>
+                                    <input type="password" name="new_password" required minlength="8" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password</label>
+                                    <input type="password" name="new_password_confirmation" required minlength="8" class="profile-input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="px-6 py-2.5 bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-800 flex items-center gap-2">
+                                    Ganti Password
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -561,7 +604,7 @@
                                     <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
                                 </svg>
                             </div>
-                            <div class="text-3xl font-bold text-gray-900 font-display mb-1">127</div>
+                            <div class="text-3xl font-bold text-gray-900 font-display mb-1">{{ $totalOrders }}</div>
                             <div class="text-sm text-gray-600">Total Pesanan</div>
                         </div>
 
@@ -572,7 +615,7 @@
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <div class="text-2xl md:text-3xl font-bold text-gray-900 font-display mb-1">Rp 145.8jt</div>
+                            <div class="text-2xl md:text-3xl font-bold text-gray-900 font-display mb-1">Rp {{ number_format($totalSpent, 0, ',', '.') }}</div>
                             <div class="text-sm text-gray-600">Total Belanja</div>
                         </div>
 
@@ -582,7 +625,7 @@
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <div class="text-3xl font-bold text-gray-900 font-display mb-1">8.542</div>
+                            <div class="text-3xl font-bold text-gray-900 font-display mb-1">{{ number_format($totalProducts, 0, ',', '.') }}</div>
                             <div class="text-sm text-gray-600">Produk Dibeli</div>
                         </div>
                     </div>
@@ -599,10 +642,10 @@
                                 </div>
                                 <div>
                                     <div class="font-semibold text-gray-900">Bergabung Sejak</div>
-                                    <div class="text-sm text-gray-600">15 Januari 2024</div>
+                                    <div class="text-sm text-gray-600">{{ $user->created_at->format('d F Y') }}</div>
                                 </div>
                             </div>
-                            <span class="text-sm text-gray-500">11 bulan yang lalu</span>
+                            <span class="text-sm text-gray-500">{{ $user->created_at->diffForHumans() }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between py-3">
@@ -628,25 +671,25 @@
     <!-- Mobile Bottom Navigation -->
     <div class="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-50 shadow-lg">
         <div class="flex justify-around items-center h-16">
-            <a href="index.html" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
+            <a href="{{ route('dropshipper.dashboard') }}" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                 </svg>
                 <span class="text-xs mt-1">Beranda</span>
             </a>
-            <a href="product-catalog.html" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
+            <a href="{{ route('dropshipper.catalog') }}" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                 </svg>
                 <span class="text-xs mt-1">Produk</span>
             </a>
-            <a href="orders.html" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
+            <a href="{{ route('dropshipper.orders') }}" class="flex flex-col items-center justify-center text-gray-700 hover:text-primary transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
                 <span class="text-xs mt-1">Pesanan</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center text-primary transition">
+            <a href="{{ route('dropshipper.profile') }}" class="flex flex-col items-center justify-center text-primary transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>

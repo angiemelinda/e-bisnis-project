@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CategorySeeder::class,
-            ProductSeeder::class,
+            // ProductSeeder::class, // Disabled - use manual product creation instead
         ]);
 
         // Seed default Super Admin

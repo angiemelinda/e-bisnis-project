@@ -66,7 +66,7 @@
                         <input type="checkbox" name="remember" class="w-3.5 h-3.5 text-primary border-gray-300 rounded focus:ring-primary">
                         <span class="ml-2 text-gray-600">Ingat saya</span>
                     </label>
-                    <a href="{{ route('auth.forgot-password') }}" class="text-primary hover:text-secondary font-medium">Lupa password?</a>
+                    <a href="{{ route('password.request') }}" class="text-primary hover:text-secondary font-medium">Lupa password?</a>
                 </div>
 
                 <button 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Dropshipper;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Order;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -16,10 +18,10 @@ class DashboardController extends Controller
     {
         /**
          * Ambil produk dengan stok terbanyak
-         * - with('category') → eager loading agar tidak N+1 query
+         * - with(['category', 'primaryImage']) → eager loading agar tidak N+1 query
          * - status active → hanya produk aktif
          */
-        $topProducts = Product::with('category')
+        $topProducts = Product::with(['category', 'primaryImage'])
             ->where('status', 'active')
             ->orderBy('stock', 'desc')
             ->take(12)
@@ -29,7 +31,7 @@ class DashboardController extends Controller
          * Ambil produk terbaru
          * Digunakan untuk section "Produk Terbaru"
          */
-        $newProducts = Product::with('category')
+        $newProducts = Product::with(['category', 'primaryImage'])
             ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->take(12)
@@ -43,6 +45,31 @@ class DashboardController extends Controller
             ->get();
 
         /**
+         * Ambil order status dari user yang sedang login
+         */
+        $userId = Auth::id();
+        
+        // Belum Bayar - payment_status = menunggu_pembayaran
+        $pendingPayment = Order::where('user_id', $userId)
+            ->where('payment_status', 'menunggu_pembayaran')
+            ->count();
+        
+        // Dikemas - status = dikemas
+        $packing = Order::where('user_id', $userId)
+            ->where('status', 'dikemas')
+            ->count();
+        
+        // Dikirim - status = dikirim
+        $shipped = Order::where('user_id', $userId)
+            ->where('status', 'dikirim')
+            ->count();
+        
+        // Selesai - status = selesai
+        $completed = Order::where('user_id', $userId)
+            ->where('status', 'selesai')
+            ->count();
+
+        /**
          * Kirim semua data ke view dashboard
          * View TIDAK DIUBAH → aman untuk frontend
          */
@@ -50,7 +77,11 @@ class DashboardController extends Controller
         return view('dropshipper.dashboard', [
             'topProducts' => $topProducts,
             'newProducts' => $newProducts,
-            'categories' => $categories
+            'categories' => $categories,
+            'pendingPayment' => $pendingPayment,
+            'packing' => $packing,
+            'shipped' => $shipped,
+            'completed' => $completed
         ]);
     }
 

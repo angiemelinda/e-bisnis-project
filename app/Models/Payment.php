@@ -10,6 +10,7 @@ class Payment extends Model
         'order_id',
         'midtrans_order_id',
         'status',
+        'amount',
     ];
 
 

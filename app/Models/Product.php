@@ -16,7 +16,12 @@ class Product extends Model
         'user_id',
         'price',
         'stock',
+        'min_order',
         'status',
+    ];
+    
+    protected $attributes = [
+        'min_order' => 1,
     ];
 
     public function category()

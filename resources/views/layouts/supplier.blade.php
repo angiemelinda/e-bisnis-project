@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') | Supplier Grosir Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -121,7 +122,7 @@
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit"
-                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 transition">
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition font-medium">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -164,16 +165,100 @@
 
         <!-- Ikon Pesan & Notifikasi -->
         <div class="flex items-center gap-3">
-            <button class="p-2 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500">
-                <!-- Notifikasi Icon -->
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 
-                    viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            </button>
+            @php
+                $unreadCount = \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count();
+                $notifications = \App\Models\Notification::where('user_id', auth()->id())->latest()->take(5)->get();
+            @endphp
+            <div class="relative group">
+                <button class="p-2 rounded-lg bg-yellow-400 text-white hover:bg-yellow-500 relative">
+                    <!-- Notifikasi Icon -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" 
+                        viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    @if($unreadCount > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ $unreadCount }}</span>
+                    @endif
+                </button>
+                <!-- Dropdown Notifikasi -->
+                <div class="hidden group-hover:block absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="font-semibold text-gray-800">Notifikasi</h3>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto">
+                        @forelse($notifications as $notification)
+                        <a href="{{ $notification->link ?: '#' }}" 
+                           class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 {{ !$notification->is_read ? 'bg-orange-50' : '' }}"
+                           onclick="markAsRead({{ $notification->id }})">
+                            <div class="flex items-start gap-3">
+                                <div class="shrink-0">
+                                    @if($notification->type === 'order' || $notification->type === 'pesanan')
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                            </svg>
+                                        </div>
+                                    @elseif($notification->type === 'payment')
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    @else
+                                        <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-sm text-gray-900">{{ $notification->title }}</p>
+                                    <p class="text-xs text-gray-600 mt-1 line-clamp-2">{{ $notification->message }}</p>
+                                    <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                </div>
+                                @if(!$notification->is_read)
+                                <div class="shrink-0">
+                                    <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                </div>
+                                @endif
+                            </div>
+                        </a>
+                        @empty
+                        <div class="px-4 py-8 text-center text-gray-500 text-sm">
+                            Tidak ada notifikasi
+                        </div>
+                        @endforelse
+                    </div>
+                    @if($notifications->count() > 0)
+                    <div class="p-3 border-t border-gray-200 text-center">
+                        <a href="{{ route('supplier.notifications') }}" class="text-sm text-orange-600 hover:text-orange-700 font-medium">Lihat Semua</a>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
     {{-- Konten halaman --}}
     @yield('content')
 </main>
+
+@stack('scripts')
+
+<script>
+    function markAsRead(notificationId) {
+        fetch(`/supplier/notifications/${notificationId}/read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        }).then(() => {
+            // Reload page to update notification count
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+</script>
+</body>
+</html>
 
